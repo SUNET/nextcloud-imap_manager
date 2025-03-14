@@ -13,16 +13,16 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 class Application extends App implements IBootstrap
 {
-  public const APP_ID = 'imap_manager';
+    public const APP_ID = 'imap_manager';
 
-  public function __construct()
-  {
-    parent::__construct(self::APP_ID);
-  }
-  public function register(IRegistrationContext $context): void
-  {
-  }
-  public function boot(IBootContext $context): void
-  {
-  }
+    public function __construct()
+    {
+        parent::__construct(self::APP_ID);
+    }
+    public function register(IRegistrationContext $context): void
+    {
+    }
+    public function boot(IBootContext $context): void
+    {
+    }
 }

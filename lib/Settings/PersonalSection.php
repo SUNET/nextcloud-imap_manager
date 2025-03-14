@@ -8,28 +8,28 @@ use OCP\Settings\IIconSection;
 
 class PersonalSection implements IIconSection
 {
-  public function __construct(
-    private IURLGenerator $urlGenerator,
-    private IL10N $l
-  ) {
-  }
+    public function __construct(
+        private IURLGenerator $urlGenerator,
+        private IL10N $l
+    ) {
+    }
 
 
-  public function getID(): string
-  {
-    return 'imap-manager';
-  }
-  public function getName(): string
-  {
-    return $this->l->t('IMAP Manager');
-  }
+    public function getID(): string
+    {
+        return 'imap-manager';
+    }
+    public function getName(): string
+    {
+        return $this->l->t('IMAP Manager');
+    }
 
-  public function getPriority(): int
-  {
-    return 90;
-  }
-  public function getIcon(): string
-  {
-    return $this->urlGenerator->imagePath('core', 'categories/integration.svg');
-  }
+    public function getPriority(): int
+    {
+        return 90;
+    }
+    public function getIcon(): string
+    {
+        return $this->urlGenerator->imagePath('core', 'categories/integration.svg');
+    }
 }
