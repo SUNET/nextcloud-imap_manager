@@ -1,0 +1,38 @@
+{
+  "name": "imap_manager",
+  "version": "0.0.1",
+  "description": "IMAP Manager",
+  "author": "Micke Nordin <kano@sunet.se>",
+  "homepage": "https://github.com/sunet/nextcloud-imap_manager",
+  "bugs": {
+    "url": "https://github.com/sunet/nextcloud-imap_manager/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sunet/nextcloud-imap_manager"
+  },
+  "license": "AGPL-3.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production webpack --progress --config webpack.js",
+    "dev": "NODE_ENV=development webpack --progress --config webpack.js",
+    "watch": "NODE_ENV=development webpack --progress --watch --config webpack.js",
+    "lint": "eslint --ext .js,.vue src",
+    "lint:fix": "eslint --ext .js,.vue src --fix",
+    "stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css",
+    "stylelint:fix": "stylelint src/**/*.vue src/**/*.scss src/**/*.css --fix"
+  },
+  "dependencies": {
+    "@nextcloud/l10n": "^3.1.0",
+    "@nextcloud/vue": "^8.12.0",
+    "vue": "^2.7.16",
+    "vue-material-design-icons": "^5.3.0"
+  },
+  "devDependencies": {
+    "@nextcloud/browserslist-config": "^3.0.0",
+    "@nextcloud/webpack-vue-config": "^6.0.1"
+  }
+}

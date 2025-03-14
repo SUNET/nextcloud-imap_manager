@@ -1,0 +1,20 @@
+{
+    "name": "sunet/imap_manager",
+    "description": "Set IMAP passwords",
+    "type": "project",
+    "license": "AGPL v3",
+    "autoload": {
+        "psr-4": {
+            "OCA\\ImapManager\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Micke Nordin",
+            "email": "kano@sunet.se"
+        }
+    ],
+    "require": {
+        "psr/log": "^3.0"
+    }
+}
