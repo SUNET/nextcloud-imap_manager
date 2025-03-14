@@ -15,6 +15,8 @@ declare(strict_types=1);
 return [
   'resources' => [],
   'routes' => [
+    ['name' => 'api#delete', 'url' => '/delete', 'verb' => 'POST'],
+    ['name' => 'api#get', 'url' => '/get', 'verb' => 'GET'],
     ['name' => 'api#set', 'url' => '/set', 'verb' => 'POST'],
   ]
 ];

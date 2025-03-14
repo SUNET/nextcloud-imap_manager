@@ -16,5 +16,12 @@
     ],
     "require": {
         "psr/log": "^3.0"
+    },
+    "scripts": {
+        "cs:fix": "php-cs-fixer fix",
+        "cs:check": "php-cs-fixer fix --dry-run --diff"
+    },
+    "require-dev": {
+        "fabpot/php-cs-fixer": "^3.72"
     }
 }

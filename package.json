@@ -26,13 +26,20 @@
     "stylelint:fix": "stylelint src/**/*.vue src/**/*.scss src/**/*.css --fix"
   },
   "dependencies": {
+    "@nextcloud/dialogs": "^6.1.1",
     "@nextcloud/l10n": "^3.1.0",
     "@nextcloud/vue": "^8.12.0",
+    "inquirer": "^12.4.3",
+    "uuid": "^11.1.0",
     "vue": "^2.7.16",
     "vue-material-design-icons": "^5.3.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.22.0",
     "@nextcloud/browserslist-config": "^3.0.0",
-    "@nextcloud/webpack-vue-config": "^6.0.1"
+    "@nextcloud/webpack-vue-config": "^6.0.1",
+    "eslint": "^9.22.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "globals": "^16.0.0"
   }
 }

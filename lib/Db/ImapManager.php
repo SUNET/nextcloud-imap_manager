@@ -27,47 +27,47 @@ use OCP\DB\Types;
  * @method void setUserId(string $userId)
  */
 
-class ImapManager extends Entity {
+class ImapManager extends Entity
+{
+    protected $createdAt;
+    /**
+    * @var $int $updatedAt
+    */
+    protected $updatedAt;
+    /**
+    * @var ?string $email
+    */
+    protected $email;
+    /**
+    * @var string $hash
+    */
+    protected $hash;
+    /**
+    * @var string $hashType
+    */
+    protected $hashType;
+    /**
+    * @var string $name
+    */
+    protected $name;
+    /**
+    * @var string $salt
+    */
+    protected $salt;
+    /**
+    * @var string $userId
+    */
+    protected $userId;
 
-	protected $createdAt;
-	/**
-	* @var $int $updatedAt
-	*/
-	protected $updatedAt;
-	/**
-	* @var ?string $email
-	*/
-	protected $email;
-	/**
-	* @var string $hash
-	*/
-	protected $hash;
-	/**
-	* @var string $hashType
-	*/
-	protected $hashType;
-	/**
-	* @var string $name
-	*/
-	protected $name;
-	/**
-	* @var string $salt
-	*/
-	protected $salt;
-	/**
-	* @var string $userId
-	*/
-	protected $userId;
-
-  public function __construct(
-  ) {
-		$this->addType('createdAt', Types::BIGINT);
-		$this->addType('email', Types::STRING);
-		$this->addType('hash', Types::STRING);
-    $this->addType('hashType', Types::STRING);
-		$this->addType('name', Types::STRING);
-		$this->addType('salt', Types::STRING);
-		$this->addType('updatedAt', Types::BIGINT);
-		$this->addType('userId', Types::STRING);
-  }
+    public function __construct(
+    ) {
+        $this->addType('createdAt', Types::BIGINT);
+        $this->addType('email', Types::STRING);
+        $this->addType('hash', Types::STRING);
+        $this->addType('hashType', Types::STRING);
+        $this->addType('name', Types::STRING);
+        $this->addType('salt', Types::STRING);
+        $this->addType('updatedAt', Types::BIGINT);
+        $this->addType('userId', Types::STRING);
+    }
 }

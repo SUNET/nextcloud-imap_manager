@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 
 namespace OCA\ImapManager\Db;
+
 use OCA\ImapManager\Db\ImapManager;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -18,19 +19,49 @@ use OCP\IUserManager;
 /**
  * @template-extends QBMapper<ImapManager>
  */
-class ImapManagerMapper extends QBMapper {
-	public const TABLE_NAME = 'imap_manager_users';
+class ImapManagerMapper extends QBMapper
+{
+  public const TABLE_NAME = 'imap_manager_users';
   public const HASH_TYPE = 'sha3-512';
 
   public function __construct(
-    private IQueryBuilder $queryBuilder,
     private ITimeFactory $timeFactory,
     private IUserManager $userManager,
     IDBConnection $db
   ) {
-		parent::__construct($db, self::TABLE_NAME);
-	}
-  public function set(string $userId, string $token, string $name): ImapManager {
+    parent::__construct($db, self::TABLE_NAME);
+  }
+
+  /**
+   * @param int $id
+   * @return ImapManager
+   * @throws \InvalidArgumentException
+   */
+  public function get(int $id): ImapManager
+  {
+    /**
+     * @var IQueryBuilder $qb
+     */
+    $qb = $this->db->getQueryBuilder();
+    $query = $qb->select('*')
+      ->from(self::TABLE_NAME)
+      ->where($qb->expr()->eq('id', $qb->createNamedParameter($id)));
+    $imapManager = $this->findEntity($query);
+    if (!$imapManager) {
+      throw new \InvalidArgumentException("ImapManager $id not found");
+    }
+    return $imapManager;
+  }
+
+  /**
+   * @param string $userId
+   * @param string $token
+   * @param string $name
+   * @return ImapManager
+   * @throws \InvalidArgumentException
+   */
+  public function set(string $userId, string $token, string $name): ImapManager
+  {
     $user = $this->userManager->get($userId);
     if (!$user) {
       throw new \InvalidArgumentException("User $userId not found");
@@ -51,24 +82,24 @@ class ImapManagerMapper extends QBMapper {
     $imapManager->setHashType($this::HASH_TYPE);
     return $this->insertOrUpdate($imapManager);
   }
-  public function getPasswordIds(string $userId): array {
-    $qb = $this->queryBuilder;
-    $qb->select('*')
+  /**
+   * Returns the password ids for the given user
+   * @param string $userId
+   * @return array
+   */
+  public function getIdsAndNames(string $userId): array
+  {
+    $qb = $this->db->getQueryBuilder();
+    $query = $qb->select('*')
       ->from($this->tableName)
       ->where('user_id = :userId')
       ->setParameter('userId', $userId);
-    $imapManagers = $this->findEntities($qb);
+    $imapManagers = $this->findEntities($query);
 
-    $passwords = [];
+    $tokens = [];
     foreach ($imapManagers as $imapManager) {
-      $passwords[] = array('name' => $imapManager->getName(), 'id' => $imapManager->getId());
+      $tokens[] = array('name' => $imapManager->getName(), 'id' => $imapManager->getId());
     }
-    return $passwords;
+    return $tokens;
   }
 }
-
-
-
-
-
-
