@@ -1,21 +1,20 @@
 <template>
   <NcSettingsSection
     id="imap-manager"
-    name="IMAP Manager"
+    name="E-Mail Password Manager"
     :icon="'imap'"
     description="Generate app-password for IMAP."
     @default="populate"
   >
-    <div class="external-label">
-      <label for="Name">Name</label>
+    <div class="wrapper">
       <NcTextField
         id="Name"
+        label="Name"
         v-model:value="name"
-        :label-outside="true"
-        placeholder="Enter name"
+        placeholder="Enter app-password name"
+        style="width: 50%"
       />
-    </div>
-    <div>
+      <br />
       <NcButton
         @click="set()"
         aria-label="Save"
@@ -26,62 +25,82 @@
         <template>Save</template>
       </NcButton>
     </div>
-    <NcDialog v-if="showDialog" name="token" :can-close="false">
+    <NcDialog v-if="showDialog" name="App-password" :can-close="false">
       <template #actions>
+        <NcButton
+          @click="showDialog = false"
+          aria-label="Cancel"
+          variant="tertiary"
+        >
+          <template #icon>
+            <Cancel :size="16" />
+          </template>
+        </NcButton>
         <NcButton @click="copy()" aria-label="Copy" variant="tertiary">
           <template #icon>
             <IconClipboard size="16" />
           </template>
         </NcButton>
       </template>
-      <div>
-        {{ this.token }}
-        <NcButton
-          @click="toggle()"
-          aria-label="Toggle visibility"
-          :disabled="disabled"
-          :size="size"
-          variant="tertiary"
-        >
-          <Eye :size="16" />
-        </NcButton>
-      </div>
+      <template #default>
+        <div class="wrapper">
+          <div>App-password will not be shown again.</div>
+          <div id="app-password">
+            <NcPasswordField
+              id="token"
+              v-model="newToken"
+              :label="App - password"
+            />
+          </div>
+        </div>
+      </template>
     </NcDialog>
-    <ul>
-      <NcListItem v-for="token in tokens" bold name="token.name" oneline>
-        <template #name>
-          {{ token.name }}
-        </template>
-        <template #description>
-          {{ token.name }}
-        </template>
-        <template #actions>
-          <NcActions>
-            <NcActionButton
+    <br />
+    <div class="wrapper" v-if="tokens.length > 0">
+      <div><strong>Issued app-passwords</strong></div>
+      <br />
+      <ul style="width: 50%">
+        <NcListItem
+          v-for="token in tokens"
+          bold
+          compact="true"
+          name="token.name"
+          oneline
+        >
+          <template #icon>
+            <Key :size="16" />
+          </template>
+          <template #name>
+            {{ token.name }}
+          </template>
+          <template #details>
+            <NcButton
               @click="unset(token.id)"
               aria-label="Delete"
-              :disabled="disabled"
-              :size="size"
+              variant="tertiary"
             >
               <template #icon>
                 <Delete :size="16" />
               </template>
-            </NcActionButton>
-          </NcActions>
-        </template>
-      </NcListItem>
-    </ul>
+            </NcButton>
+          </template>
+        </NcListItem>
+      </ul>
+    </div>
   </NcSettingsSection>
 </template>
 <script>
 import Delete from "vue-material-design-icons/Delete.vue";
-import Eye from "vue-material-design-icons/Eye.vue";
+import Cancel from "vue-material-design-icons/Cancel.vue";
 import IconClipboard from "vue-material-design-icons/ContentCopy.vue";
+import Key from "vue-material-design-icons/Key.vue";
 import NcActionButton from "@nextcloud/vue/dist/Components/NcActionButton.js";
 import NcActions from "@nextcloud/vue/dist/Components/NcActions.js";
 import NcButton from "@nextcloud/vue/dist/Components/NcButton.js";
 import NcDialog from "@nextcloud/vue/dist/Components/NcDialog.js";
+import NcDialogButton from "@nextcloud/vue/dist/Components/NcDialogButton.js";
 import NcListItem from "@nextcloud/vue/dist/Components/NcListItem.js";
+import NcPasswordField from "@nextcloud/vue/dist/Components/NcPasswordField.js";
 import NcSettingsSection from "@nextcloud/vue/dist/Components/NcSettingsSection.js";
 import NcTextField from "@nextcloud/vue/dist/Components/NcTextField.js";
 import axios from "@nextcloud/axios";
@@ -94,14 +113,16 @@ export default {
   name: "PersonalSettings",
 
   components: {
+    Cancel,
     Delete,
-    Eye,
     IconClipboard,
+    Key,
     NcActionButton,
     NcActions,
     NcButton,
     NcDialog,
     NcListItem,
+    NcPasswordField,
     NcSettingsSection,
     NcTextField,
   },
@@ -113,7 +134,6 @@ export default {
       name: "",
       newToken: "",
       showDialog: false,
-      showToken: false,
       token: "",
       tokens: [],
     };
@@ -166,15 +186,6 @@ export default {
           name: this.name,
         });
         this.name = "";
-      }
-    },
-    async toggle() {
-      if (this.showToken == true) {
-        this.showToken = false;
-        this.token = this.token.replace(/./g, "*");
-      } else {
-        this.showToken = true;
-        this.token = this.newToken;
       }
     },
     async unset(id) {
