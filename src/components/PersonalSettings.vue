@@ -48,7 +48,7 @@
           <div id="app-password">
             <NcPasswordField
               id="token"
-              v-model="newToken"
+              v-model="token"
               :label="App - password"
             />
           </div>
@@ -132,7 +132,6 @@ export default {
     return {
       isCopied: false,
       name: "",
-      newToken: "",
       showDialog: false,
       token: "",
       tokens: [],
@@ -141,7 +140,7 @@ export default {
   methods: {
     async copy() {
       try {
-        await navigator.clipboard.writeText(this.newToken);
+        await navigator.clipboard.writeText(this.token);
         showSuccess(t("imap_manager", "Token copied to the clipboard"));
         this.showDialog = false;
       } catch (e) {
@@ -186,14 +185,13 @@ export default {
       if (!this.name) {
         return;
       }
-      this.newToken = uuidv4();
+      this.token = uuidv4();
       var url = "/apps/imap_manager/set";
 
       let params = { token: this.token, name: this.name };
       let result = await this.csrfRequest(url, "POST", params);
       if (result.data.success == true) {
         console.log("New IMAP password set");
-        this.token = this.newToken.replace(/./g, "*");
         this.showDialog = true;
         this.tokens.push({
           id: result.data.id,
