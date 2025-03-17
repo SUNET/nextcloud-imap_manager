@@ -37,7 +37,7 @@ class ApiController extends Controller
             $response = false;
             $status = Http::STATUS_BAD_GATEWAY;
         }
-        return new JSONResponse(array( 'success' => $response, 'ids' => $ids ), $status);
+        return new JSONResponse(array('success' => $response, 'ids' => $ids), $status);
     }
 
     /**
@@ -48,11 +48,11 @@ class ApiController extends Controller
     public function set(): JSONResponse
     {
         $params = $this->request->getParams();
-        $name = $params['name'];
-        $token = $params['token'];
+        $name = strval($params['name']);
+        $token = strval($params['token']);
         /**
-        * @var ImapManager
-        */
+         * @var ImapManager
+         */
         $imapManager = $this->imapManagerMapper->set($this->userId, $token, $name);
         $response = true;
         $status = Http::STATUS_OK;
@@ -77,5 +77,4 @@ class ApiController extends Controller
         }
         return new JSONResponse(array('success' => false), Http::STATUS_BAD_GATEWAY);
     }
-
 }

@@ -61,13 +61,22 @@ class ImapManager extends Entity
 
     public function __construct(
     ) {
-        $this->addType('createdAt', Types::BIGINT);
-        $this->addType('email', Types::STRING);
-        $this->addType('hash', Types::STRING);
-        $this->addType('hashType', Types::STRING);
-        $this->addType('name', Types::STRING);
-        $this->addType('salt', Types::STRING);
-        $this->addType('updatedAt', Types::BIGINT);
-        $this->addType('userId', Types::STRING);
+        // When we drop support for NC 30 we can use these
+        //$this->addType('createdAt', Types::BIGINT);
+        //$this->addType('email', Types::STRING);
+        //$this->addType('hash', Types::STRING);
+        //$this->addType('hashType', Types::STRING);
+        //$this->addType('name', Types::STRING);
+        //$this->addType('salt', Types::STRING);
+        //$this->addType('updatedAt', Types::BIGINT);
+        //$this->addType('userId', Types::STRING);
+        $this->addType('createdAt', 'integer');
+        $this->addType('email', 'string');
+        $this->addType('hash', 'string');
+        $this->addType('hashType', 'string');
+        $this->addType('name', 'string');
+        $this->addType('salt', 'string');
+        $this->addType('updatedAt', 'integer');
+        $this->addType('userId', 'string');
     }
 }
