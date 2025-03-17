@@ -160,9 +160,23 @@ export default {
         this.isCopied = false;
       }, 2000);
     },
+    async csrfRequest(incoming_url, method, payload) {
+      var csrf_url = generateUrl("/csrftoken");
+      let csrfresult = await axios.get(csrf_url);
+      console.log("CSRF token loaded");
+      let csrftoken = csrfresult.data.token;
+      var url = generateUrl(incoming_url);
+      let result = await axios({
+        method: method,
+        url: url,
+        data: payload,
+        headers: { csrftoken },
+      });
+      return result;
+    },
     async get() {
-      var url = generateUrl("/apps/imap_manager/get");
-      let result = await axios.get(url);
+      var url = "/apps/imap_manager/get";
+      let result = await this.csrfRequest(url, "GET");
       if (result.data.success == true) {
         this.tokens = result.data.ids;
         console.log("IMAP passwords loaded");
@@ -173,10 +187,10 @@ export default {
         return;
       }
       this.newToken = uuidv4();
-      var url = generateUrl("/apps/imap_manager/set");
+      var url = "/apps/imap_manager/set";
 
       let params = { token: this.token, name: this.name };
-      let result = await axios.post(url, params);
+      let result = await this.csrfRequest(url, "POST", params);
       if (result.data.success == true) {
         console.log("New IMAP password set");
         this.token = this.newToken.replace(/./g, "*");
@@ -189,9 +203,9 @@ export default {
       }
     },
     async unset(id) {
-      var url = generateUrl("/apps/imap_manager/delete");
+      var url = "/apps/imap_manager/delete";
       let params = { id: id };
-      let result = await axios.post(url, params);
+      let result = await this.csrfRequest(url, "POST", params);
       if (result.data.success == true) {
         for (var i = 0; i < this.tokens.length; i++) {
           var token = this.tokens[i];
