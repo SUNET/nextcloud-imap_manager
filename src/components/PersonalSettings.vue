@@ -10,7 +10,7 @@
       <NcTextField
         id="Name"
         label="Name"
-        v-model:value="name"
+        v-model="name"
         placeholder="Enter app-password name"
         style="width: 50%"
       />
@@ -55,13 +55,14 @@
         </div>
       </template>
     </NcDialog>
-    <br />
     <div class="wrapper" v-if="tokens.length > 0">
-      <div><strong>Issued app-passwords</strong></div>
+      <hr />
+      <h3>Issued app-passwords</h3>
       <br />
       <ul style="width: 50%">
         <NcListItem
           v-for="token in tokens"
+          v-bind:key="token.id"
           bold
           compact="true"
           name="token.name"
@@ -87,18 +88,58 @@
         </NcListItem>
       </ul>
     </div>
+    <div class="wrapper">
+      <hr />
+      <h3>Sync settings</h3>
+      <div class="settings-section_desc"> 
+      <p>Select the E-Mail provider you will be using as primary, the unchecked provider will be backup.</p>
+      </div>
+      <div id="select_m365">
+        <input type="radio" id="m365" value="m365" v-model="radioValue" style="vertical-align: middle"/>
+        <label for="m365">Microsoft 365</label>
+      <div />
+      <div id="select_sunet">
+        <input type="radio" id="sunet" value="sunet" v-model="radioValue" style="vertical-align: middle" />
+        <label for="sunet">Sunet Mail</label>
+      <div />
+        <div id="select_frequency">
+          <select id="select_options" name="select_options" >
+            <option id="daily" required value="daily" selected>Daily</option>
+            <option id="hourly" required value="hourly">Hourly</option>
+            <option id="minutely" required value="minutely">Every Minute</option>
+          </select>
+      </div>
+      <div id="select_boxes">
+        <input type="checkbox" id="calendar" v-model="calendarValue" style="vertical-align: middle" checked="{{calendarValue}}" required />
+        <label for="calendar">Calendar</label>
+        <input type="checkbox" id="contacts" v-model="contactsValue" style="vertical-align: middle" checked="{{contactsValue}}" required />
+        <label for="contacts">Contacts</label>
+        <input type="checkbox" id="email" v-model="emailValue" style="vertical-align: middle" checked="{{emailValue}}" />
+        <label for="email">E-Mail</label>
+      </div>
+      <br />
+      <NcButton
+        @click="set_sync()"
+        aria-label="Save"
+        :disabled="disabled"
+        :size="size"
+        variant="primary"
+      >
+        <template>Save</template>
+      </NcButton>
+    </div>
   </NcSettingsSection>
 </template>
 <script>
-import Delete from "vue-material-design-icons/Delete.vue";
 import Cancel from "vue-material-design-icons/Cancel.vue";
+import Delete from "vue-material-design-icons/Delete.vue";
 import IconClipboard from "vue-material-design-icons/ContentCopy.vue";
 import Key from "vue-material-design-icons/Key.vue";
 import NcActionButton from "@nextcloud/vue/dist/Components/NcActionButton.js";
+import NcActionRadio from "@nextcloud/vue/dist/Components/NcActionRadio.js";
 import NcActions from "@nextcloud/vue/dist/Components/NcActions.js";
 import NcButton from "@nextcloud/vue/dist/Components/NcButton.js";
 import NcDialog from "@nextcloud/vue/dist/Components/NcDialog.js";
-import NcDialogButton from "@nextcloud/vue/dist/Components/NcDialogButton.js";
 import NcListItem from "@nextcloud/vue/dist/Components/NcListItem.js";
 import NcPasswordField from "@nextcloud/vue/dist/Components/NcPasswordField.js";
 import NcSettingsSection from "@nextcloud/vue/dist/Components/NcSettingsSection.js";
@@ -118,6 +159,7 @@ export default {
     IconClipboard,
     Key,
     NcActionButton,
+    NcActionRadio,
     NcActions,
     NcButton,
     NcDialog,
@@ -126,15 +168,20 @@ export default {
     NcSettingsSection,
     NcTextField,
   },
-
   props: [],
   data() {
     return {
+      calendarValue: true ,
+      contactsValue: true ,
+      emailValue: true,
       isCopied: false,
       name: "",
       showDialog: false,
       token: "",
       tokens: [],
+      radioValue: "m365",
+      optionsValue: "daily",
+      whatValue: []
     };
   },
   methods: {
@@ -160,11 +207,11 @@ export default {
       }, 2000);
     },
     async csrfRequest(incoming_url, method, payload) {
-      var csrf_url = generateUrl("/csrftoken");
+      let csrf_url = generateUrl("/csrftoken");
       let csrfresult = await axios.get(csrf_url);
       console.log("CSRF token loaded");
       let csrftoken = csrfresult.data.token;
-      var url = generateUrl(incoming_url);
+      let url = generateUrl(incoming_url);
       let result = await axios({
         method: method,
         url: url,
@@ -174,19 +221,44 @@ export default {
       return result;
     },
     async get() {
-      var url = "/apps/imap_manager/get";
+      let url = "/apps/imap_manager/get";
       let result = await this.csrfRequest(url, "GET");
-      if (result.data.success == true) {
+      if ('ids' in result.data) {
         this.tokens = result.data.ids;
-        console.log("IMAP passwords loaded");
+        this.optionsValue.id = result.data.values.optionsValue;
+        this.calendarValue.checked = result.values.calendarValue;
+        this.contactsValue.checked = result.values.contactsValue;
+        this.emailValue.checked = result.values.emailValue;
+        this.radioValue = result.values.radioValue;
+        console.log("IMAP passwords and sync settings loaded");
       }
+      let values = result.data.values;
+      console.log(values);
+      if(values) {
+        var selection = document.getElementById("select_options");
+        for (var i = 0; i < selection.children.length; i++) {
+          var option = selection.children[i];
+          if (option.value == values.frequency) {
+            selection.children[i].selected = true;
+          } else {
+            selection.children[i].selected = false;
+          }
+        }
+        this.optionsValue = values.frequency;
+        this.calendarValue = Boolean(values.calendar_enabled);
+        this.contactsValue = Boolean(values.contacts_enabled);
+        this.emailValue = Boolean(values.email_enabled);
+        this.radioValue = values.source;
+        this.syncActive = true;
+      }
+      console.log("IMAP passwords and sync settings loaded");
     },
     async set() {
       if (!this.name) {
         return;
       }
       this.token = uuidv4();
-      var url = "/apps/imap_manager/set";
+      let url = "/apps/imap_manager/set";
 
       let params = { token: this.token, name: this.name };
       let result = await this.csrfRequest(url, "POST", params);
@@ -200,8 +272,37 @@ export default {
         this.name = "";
       }
     },
+    async set_sync() {
+        // TODO: Implement delete of sync job
+      let url = "/apps/imap_manager/set_sync";
+      var selection = document.getElementById("select_options");
+      var frequency = this.optionsValue;
+      for (var i = 0; i < selection.children.length; i++) {
+        var option = selection.children[i];
+        if (option.selected) {
+          frequency = option.id;
+          this.optionsValue = option.id;
+          break;
+        } 
+      }
+      var calendar = Boolean(this.calendarValue);
+      var contacts = Boolean(this.contactsValue);
+      var email = Boolean(this.emailValue);
+      var primary = this.radioValue;
+      let params = {
+        frequency: frequency,
+        calendar: calendar,
+        contacts: contacts,
+        email: email,
+        primary: primary 
+      };
+      let result = await this.csrfRequest(url, "POST", params);
+      if (result.data.success == true) {
+        console.log("New sync job set");
+      }
+    },
     async unset(id) {
-      var url = "/apps/imap_manager/delete";
+      let url = "/apps/imap_manager/delete";
       let params = { id: id };
       let result = await this.csrfRequest(url, "POST", params);
       if (result.data.success == true) {
