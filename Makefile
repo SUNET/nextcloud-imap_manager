@@ -57,7 +57,7 @@ docker_kill:
 docker: docker_kill package
 	docker run --rm --detach --expose 8000 -p 8000:80 \
 		--name nextcloud nextcloud:latest
-	sleep 10
+	sleep 30
 	docker cp $(build_dir)/$(app_name)-$(version).tar.gz nextcloud:/var/www/html/custom_apps
 	docker exec -u www-data nextcloud /bin/bash -c "cd /var/www/html/custom_apps && tar -xzf $(app_name)-$(version).tar.gz && rm $(app_name)-$(version).tar.gz"
 	docker exec nextcloud /bin/bash -c "chown -R www-data:www-data /var/www/html/custom_apps/$(app_name)"
