@@ -177,6 +177,7 @@ export default {
       isCopied: false,
       name: "",
       showDialog: false,
+      syncActive: false,
       token: "",
       tokens: [],
       radioValue: "m365",
@@ -225,12 +226,6 @@ export default {
       let result = await this.csrfRequest(url, "GET");
       if ('ids' in result.data) {
         this.tokens = result.data.ids;
-        this.optionsValue.id = result.data.values.optionsValue;
-        this.calendarValue.checked = result.values.calendarValue;
-        this.contactsValue.checked = result.values.contactsValue;
-        this.emailValue.checked = result.values.emailValue;
-        this.radioValue = result.values.radioValue;
-        console.log("IMAP passwords and sync settings loaded");
       }
       let values = result.data.values;
       console.log(values);
@@ -296,6 +291,7 @@ export default {
         email: email,
         primary: primary 
       };
+      console.log(params);
       let result = await this.csrfRequest(url, "POST", params);
       if (result.data.success == true) {
         console.log("New sync job set");

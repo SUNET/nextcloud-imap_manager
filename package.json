@@ -1,6 +1,6 @@
 {
   "name": "imap_manager",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "IMAP Manager",
   "author": "Micke Nordin <kano@sunet.se>",
   "homepage": "https://github.com/sunet/nextcloud-imap_manager",

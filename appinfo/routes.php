@@ -18,5 +18,6 @@ return [
     ['name' => 'api#delete', 'url' => '/delete', 'verb' => 'POST'],
     ['name' => 'api#get', 'url' => '/get', 'verb' => 'GET'],
     ['name' => 'api#set', 'url' => '/set', 'verb' => 'POST'],
+    ['name' => 'api#set_sync', 'url' => '/set_sync', 'verb' => 'POST'],
   ]
 ];
