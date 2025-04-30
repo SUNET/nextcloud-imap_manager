@@ -25,6 +25,7 @@
         <template>Save</template>
       </NcButton>
     </div>
+    <br />
     <NcDialog v-if="showDialog" name="App-password" :can-close="false">
       <template #actions>
         <NcButton
@@ -56,9 +57,7 @@
       </template>
     </NcDialog>
     <div class="wrapper" v-if="tokens.length > 0">
-      <hr />
-      <h3>Issued app-passwords</h3>
-      <br />
+      <p><strong>Issued app-passwords</strong></p>
       <ul style="width: 50%">
         <NcListItem
           v-for="token in tokens"
@@ -89,44 +88,48 @@
       </ul>
     </div>
     <div class="wrapper">
-      <hr />
-      <h3>Sync settings</h3>
-      <div class="settings-section_desc"> 
-      <p>Select the E-Mail provider you will be using as primary, the unchecked provider will be backup.</p>
-      </div>
-      <div id="select_m365">
-        <input type="radio" id="m365" value="m365" v-model="radioValue" style="vertical-align: middle"/>
-        <label for="m365">Microsoft 365</label>
-      <div />
-      <div id="select_sunet">
-        <input type="radio" id="sunet" value="sunet" v-model="radioValue" style="vertical-align: middle" />
-        <label for="sunet">Sunet Mail</label>
-      <div />
+      <p><strong>Sync settings</strong></p>
+      <p class="settings-section__desc">Select the E-Mail provider you will be using as primary, the unchecked provider will be backup.</p>
+      <form>
+        <div id="select_m365">
+          <input type="radio" id="m365" value="m365" v-model="radioValue" style="vertical-align: middle"/>
+          <label for="m365">Microsoft 365</label>
+        <div />
+        <div id="select_sunet">
+          <input type="radio" id="sunet" value="sunet" v-model="radioValue" style="vertical-align: middle" />
+          <label for="sunet">Sunet Mail</label>
+        <div />
         <div id="select_frequency">
           <select id="select_options" name="select_options" >
             <option id="daily" required value="daily" selected>Daily</option>
             <option id="hourly" required value="hourly">Hourly</option>
             <option id="minutely" required value="minutely">Every Minute</option>
           </select>
-      </div>
-      <div id="select_boxes">
-        <input type="checkbox" id="calendar" v-model="calendarValue" style="vertical-align: middle" checked="{{calendarValue}}" required />
-        <label for="calendar">Calendar</label>
-        <input type="checkbox" id="contacts" v-model="contactsValue" style="vertical-align: middle" checked="{{contactsValue}}" required />
-        <label for="contacts">Contacts</label>
-        <input type="checkbox" id="email" v-model="emailValue" style="vertical-align: middle" checked="{{emailValue}}" />
-        <label for="email">E-Mail</label>
-      </div>
-      <br />
-      <NcButton
-        @click="set_sync()"
-        aria-label="Save"
-        :disabled="disabled"
-        :size="size"
-        variant="primary"
-      >
-        <template>Save</template>
-      </NcButton>
+        </div>
+        <div id="select_boxes">
+          <input type="checkbox" id="calendar" v-model="calendarValue" style="vertical-align: middle" checked="{{calendarValue}}" required />
+          <label for="calendar">Calendar</label>
+          <input type="checkbox" id="contacts" v-model="contactsValue" style="vertical-align: middle" checked="{{contactsValue}}" required />
+          <label for="contacts">Contacts</label>
+          <input type="checkbox" id="email" v-model="emailValue" style="vertical-align: middle" checked="{{emailValue}}" />
+          <label for="email">E-Mail</label>
+        </div>
+        <br />
+        <NcButton
+          v-model="syncActive"
+          @click="set_sync()"
+          aria-label="Save"
+          :disabled="disabled"
+          :size="size"
+          variant="primary"
+        >
+          <template>Save</template>
+          <template #icon>
+            <IconStar v-if="syncActive" :size="20" />
+            <IconStarOutline v-else :size="20" />
+				</template>
+        </NcButton>
+      </form>
     </div>
   </NcSettingsSection>
 </template>
@@ -134,6 +137,8 @@
 import Cancel from "vue-material-design-icons/Cancel.vue";
 import Delete from "vue-material-design-icons/Delete.vue";
 import IconClipboard from "vue-material-design-icons/ContentCopy.vue";
+import IconStar from 'vue-material-design-icons/Star.vue'
+import IconStarOutline from 'vue-material-design-icons/StarOutline.vue'
 import Key from "vue-material-design-icons/Key.vue";
 import NcActionButton from "@nextcloud/vue/dist/Components/NcActionButton.js";
 import NcActionRadio from "@nextcloud/vue/dist/Components/NcActionRadio.js";
@@ -157,6 +162,8 @@ export default {
     Cancel,
     Delete,
     IconClipboard,
+    IconStar,
+    IconStarOutline,
     Key,
     NcActionButton,
     NcActionRadio,
@@ -295,6 +302,7 @@ export default {
       let result = await this.csrfRequest(url, "POST", params);
       if (result.data.success == true) {
         console.log("New sync job set");
+        this.syncActive = true;
       }
     },
     async unset(id) {
