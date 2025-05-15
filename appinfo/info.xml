@@ -7,7 +7,7 @@
     -->
   <id>imap_manager</id>
   <name>IMAP Manager</name>
-  <summary>https://github.com/pondersource/mfazones</summary>
+  <summary>https://github.com/SUNET/nextcloud-imap_manager</summary>
   <description><![CDATA[An app that lets you set settings that dovecot can use
 
 See the [README](https://github.com/SUNET/nextcloud-imap_manager/blob/main/README.md) for more information.]]></description>
