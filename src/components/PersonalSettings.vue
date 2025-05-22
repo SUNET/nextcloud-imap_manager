@@ -89,29 +89,66 @@
     </div>
     <div class="wrapper">
       <p><strong>Sync settings</strong></p>
-      <p class="settings-section__desc">Select the E-Mail provider you will be using as primary, the unchecked provider will be backup.</p>
+      <p class="settings-section__desc">
+        Select the E-Mail provider you will be using as primary, the unchecked
+        provider will be backup.
+      </p>
       <form>
         <div id="select_m365">
-          <input type="radio" id="m365" value="m365" v-model="radioValue" style="vertical-align: middle"/>
+          <input
+            type="radio"
+            id="m365"
+            value="m365"
+            v-model="radioValue"
+            style="vertical-align: middle"
+          />
           <label for="m365">Microsoft 365</label>
-        <div />
+        </div>
         <div id="select_sunet">
-          <input type="radio" id="sunet" value="sunet" v-model="radioValue" style="vertical-align: middle" />
+          <input
+            type="radio"
+            id="sunet"
+            value="sunet"
+            v-model="radioValue"
+            style="vertical-align: middle"
+          />
           <label for="sunet">Sunet Mail</label>
-        <div />
+        </div>
         <div id="select_frequency">
-          <select id="select_options" name="select_options" >
+          <select id="select_options" name="select_options">
             <option id="daily" required value="daily" selected>Daily</option>
             <option id="hourly" required value="hourly">Hourly</option>
-            <option id="minutely" required value="minutely">Every Minute</option>
+            <option id="minutely" required value="minutely">
+              Every Minute
+            </option>
           </select>
         </div>
         <div id="select_boxes">
-          <input type="checkbox" id="calendar" v-model="calendarValue" style="vertical-align: middle" checked="{{calendarValue}}" required />
+          <input
+            type="checkbox"
+            id="calendar"
+            v-model="calendarValue"
+            style="vertical-align: middle"
+            checked="{{calendarValue}}"
+            required
+          />
           <label for="calendar">Calendar</label>
-          <input type="checkbox" id="contacts" v-model="contactsValue" style="vertical-align: middle" checked="{{contactsValue}}" required />
+          <input
+            type="checkbox"
+            id="contacts"
+            v-model="contactsValue"
+            style="vertical-align: middle"
+            checked="{{contactsValue}}"
+            required
+          />
           <label for="contacts">Contacts</label>
-          <input type="checkbox" id="email" v-model="emailValue" style="vertical-align: middle" checked="{{emailValue}}" />
+          <input
+            type="checkbox"
+            id="email"
+            v-model="emailValue"
+            style="vertical-align: middle"
+            checked="{{emailValue}}"
+          />
           <label for="email">E-Mail</label>
         </div>
         <br />
@@ -127,7 +164,7 @@
           <template #icon>
             <IconStar v-if="syncActive" :size="20" />
             <IconStarOutline v-else :size="20" />
-				</template>
+          </template>
         </NcButton>
       </form>
     </div>
@@ -137,8 +174,8 @@
 import Cancel from "vue-material-design-icons/Cancel.vue";
 import Delete from "vue-material-design-icons/Delete.vue";
 import IconClipboard from "vue-material-design-icons/ContentCopy.vue";
-import IconStar from 'vue-material-design-icons/Star.vue'
-import IconStarOutline from 'vue-material-design-icons/StarOutline.vue'
+import IconStar from "vue-material-design-icons/Star.vue";
+import IconStarOutline from "vue-material-design-icons/StarOutline.vue";
 import Key from "vue-material-design-icons/Key.vue";
 import NcActionButton from "@nextcloud/vue/dist/Components/NcActionButton.js";
 import NcActionRadio from "@nextcloud/vue/dist/Components/NcActionRadio.js";
@@ -178,8 +215,8 @@ export default {
   props: [],
   data() {
     return {
-      calendarValue: true ,
-      contactsValue: true ,
+      calendarValue: true,
+      contactsValue: true,
       emailValue: true,
       isCopied: false,
       name: "",
@@ -189,7 +226,7 @@ export default {
       tokens: [],
       radioValue: "m365",
       optionsValue: "daily",
-      whatValue: []
+      whatValue: [],
     };
   },
   methods: {
@@ -204,9 +241,9 @@ export default {
         window.prompt(
           t(
             "imap_manager",
-            "Clipboard not available. Please copy the token manually."
+            "Clipboard not available. Please copy the token manually.",
           ),
-          this.reference
+          this.reference,
         );
       }
       this.isCopied = true;
@@ -231,12 +268,12 @@ export default {
     async get() {
       let url = "/apps/imap_manager/get";
       let result = await this.csrfRequest(url, "GET");
-      if ('ids' in result.data) {
+      if ("ids" in result.data) {
         this.tokens = result.data.ids;
       }
       let values = result.data.values;
       console.log(values);
-      if(values) {
+      if (values) {
         var selection = document.getElementById("select_options");
         for (var i = 0; i < selection.children.length; i++) {
           var option = selection.children[i];
@@ -275,7 +312,7 @@ export default {
       }
     },
     async set_sync() {
-        // TODO: Implement delete of sync job
+      // TODO: Implement delete of sync job
       let url = "/apps/imap_manager/set_sync";
       var selection = document.getElementById("select_options");
       var frequency = this.optionsValue;
@@ -285,7 +322,7 @@ export default {
           frequency = option.id;
           this.optionsValue = option.id;
           break;
-        } 
+        }
       }
       var calendar = Boolean(this.calendarValue);
       var contacts = Boolean(this.contactsValue);
@@ -296,7 +333,7 @@ export default {
         calendar: calendar,
         contacts: contacts,
         email: email,
-        primary: primary 
+        primary: primary,
       };
       console.log(params);
       let result = await this.csrfRequest(url, "POST", params);
