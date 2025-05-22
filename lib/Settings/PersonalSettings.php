@@ -8,9 +8,7 @@ use OCP\Settings\ISettings;
 
 class PersonalSettings implements ISettings
 {
-    public function __construct(
-    ) {
-    }
+    public function __construct() {}
 
     /**
      * @return TemplateResponse
@@ -22,11 +20,11 @@ class PersonalSettings implements ISettings
 
     public function getSection(): string
     {
-        return 'security';
+        return 'connected-accounts';
     }
 
     public function getPriority(): int
     {
-        return 10;
+        return 20;
     }
 }

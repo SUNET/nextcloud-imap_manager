@@ -11,7 +11,7 @@
   <description><![CDATA[An app that lets you set settings that dovecot can use
 
 See the [README](https://github.com/SUNET/nextcloud-imap_manager/blob/main/README.md) for more information.]]></description>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
   <licence>agpl</licence>
   <author mail="kano@sunet.se" homepage="https://github.com/SUNET/nextcloud-imap_manager">SUNET</author>
   <namespace>ImapManager</namespace>

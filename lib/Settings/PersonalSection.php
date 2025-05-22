@@ -11,18 +11,17 @@ class PersonalSection implements IIconSection
     public function __construct(
         private IURLGenerator $urlGenerator,
         private IL10N $l
-    ) {
-    }
-
+    ) {}
 
     public function getID(): string
     {
-        return 'imap-manager';
+        return 'connected-accounts';
     }
     public function getName(): string
     {
-        return $this->l->t('IMAP Manager');
+        return $this->l->t('Connected accounts');
     }
+
 
     public function getPriority(): int
     {
