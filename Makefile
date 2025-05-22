@@ -65,7 +65,7 @@ docker: docker_kill package
 	docker exec -u www-data nextcloud /bin/bash -c "/var/www/html/occ app:enable $(app_name)"
 	docker exec -u www-data nextcloud /bin/bash -c "/var/www/html/occ app:disable firstrunwizard"
 	docker exec -u www-data nextcloud /bin/bash -c "/var/www/html/occ log:manage --level 0"
-	firefox -new-tab http://127.0.0.1:8000/settings/user/security
+	firefox -new-tab http://127.0.0.1:8000/settings/user/connected-accounts
 
 sign: package docker_kill
 	docker run --rm --volume $(cert_dir):/certificates --detach --name nextcloud nextcloud:latest
