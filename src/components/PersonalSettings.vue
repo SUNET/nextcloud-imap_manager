@@ -22,7 +22,7 @@
         :size="size"
         variant="primary"
       >
-        <template>Save</template>
+        <template #default>Save</template>
       </NcButton>
     </div>
     <br />
@@ -160,7 +160,7 @@
           :size="size"
           variant="primary"
         >
-          <template>Save</template>
+          <template #default>Save</template>
           <template #icon>
             <IconStar v-if="syncActive" :size="20" />
             <IconStarOutline v-else :size="20" />
@@ -177,15 +177,19 @@ import IconClipboard from "vue-material-design-icons/ContentCopy.vue";
 import IconStar from "vue-material-design-icons/Star.vue";
 import IconStarOutline from "vue-material-design-icons/StarOutline.vue";
 import Key from "vue-material-design-icons/Key.vue";
-import NcActionButton from "@nextcloud/vue/dist/Components/NcActionButton.js";
-import NcActionRadio from "@nextcloud/vue/dist/Components/NcActionRadio.js";
-import NcActions from "@nextcloud/vue/dist/Components/NcActions.js";
-import NcButton from "@nextcloud/vue/dist/Components/NcButton.js";
-import NcDialog from "@nextcloud/vue/dist/Components/NcDialog.js";
-import NcListItem from "@nextcloud/vue/dist/Components/NcListItem.js";
-import NcPasswordField from "@nextcloud/vue/dist/Components/NcPasswordField.js";
-import NcSettingsSection from "@nextcloud/vue/dist/Components/NcSettingsSection.js";
-import NcTextField from "@nextcloud/vue/dist/Components/NcTextField.js";
+
+import {
+  NcActionButton,
+  NcActionRadio,
+  NcActions,
+  NcButton,
+  NcDialog,
+  NcListItem,
+  NcPasswordField,
+  NcSettingsSection,
+  NcTextField,
+} from "@nextcloud/vue";
+
 import axios from "@nextcloud/axios";
 import { generateUrl } from "@nextcloud/router";
 import { showSuccess } from "@nextcloud/dialogs";
