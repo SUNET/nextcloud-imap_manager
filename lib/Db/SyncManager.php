@@ -15,6 +15,7 @@ use OCP\AppFramework\Db\Entity;
  * @method bool getCalendarEnabled()
  * @method bool getContactsEnabled()
  * @method bool getEmailEnabled()
+ * @method bool getEnabled()
  * @method int getCreatedAt()
  * @method int getUpdatedAt()
  * @method string getDestination()
@@ -61,6 +62,10 @@ class SyncManager extends Entity
    */
   protected $emailEnabled;
   /**
+   * @var bool $enabled
+   */
+  protected $enabled;
+  /**
    * @var string $frequency
    */
   protected $frequency;
@@ -85,6 +90,7 @@ class SyncManager extends Entity
     $this->addType('destination', 'string');
     $this->addType('email', 'string');
     $this->addType('email_enabled', 'boolean');
+    $this->addType('enabled', 'boolean');
     $this->addType('frequency', 'string');
     $this->addType('source', 'string');
     $this->addType('updated_at', 'integer');

@@ -67,17 +67,16 @@ docker: docker_kill package
 	docker exec -u www-data nextcloud /bin/bash -c "/var/www/html/occ log:manage --level 0"
 	firefox -new-tab http://127.0.0.1:8000/settings/user/connected-accounts
 
-sign: package docker_kill
+sign: docker_kill package
 	docker run --rm --volume $(cert_dir):/certificates --detach --name nextcloud nextcloud:latest
-	sleep 5
+	sleep 10
 	docker exec -u www-data nextcloud /bin/bash -c "mkdir -p /var/www/html/custom_apps"
 	docker cp $(build_dir)/$(app_name)-$(version).tar.gz nextcloud:/var/www/html/custom_apps
 	docker exec -u www-data nextcloud /bin/bash -c "cd /var/www/html/custom_apps && tar -xzf $(app_name)-$(version).tar.gz && rm $(app_name)-$(version).tar.gz"
 	docker exec -u www-data nextcloud /bin/bash -c "php /var/www/html/occ integrity:sign-app --certificate /certificates/$(app_name).crt --privateKey /certificates/$(app_name).key --path /var/www/html/custom_apps/$(app_name)"
-	docker exec -u www-data nextcloud /bin/bash -c "cd /var/www/html/custom_apps && tar pzcf $(app_name)-$(version).tar.gz $(app_name)"
-	docker cp nextcloud:/var/www/html/custom_apps/$(app_name)-$(version).tar.gz $(build_dir)/$(app_name)-$(version).tar.gz
 	sleep 3
 	docker kill nextcloud
+	openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(build_dir)/$(app_name)-$(version).tar.gz | openssl base64
 
 appstore: sign
 

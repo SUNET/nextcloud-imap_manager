@@ -72,14 +72,15 @@ class ApiController extends Controller
   {
     $params = $this->request->getParams();
     $frequency = strval($params['frequency']);
-    $calendar = boolval($params['calendar']);
-    $contacts = boolval($params['contacts']);
-    $email    = boolval($params['email']);
-    $primary  = strval($params['primary']);
+    $calendar  = boolval($params['calendar']);
+    $contacts  = boolval($params['contacts']);
+    $email     = boolval($params['email']);
+    $enabled   = boolval($params['enabled']);
+    $primary   = strval($params['primary']);
     /**
      * @var SyncManager
      */
-    $syncManager = $this->syncManagerMapper->set($this->userId, $frequency, $calendar, $contacts, $email, $primary);
+    $syncManager = $this->syncManagerMapper->set($this->userId, $frequency, $calendar, $contacts, $email, $primary, $enabled);
     $response = true;
     $status = Http::STATUS_OK;
     if (!$syncManager) {

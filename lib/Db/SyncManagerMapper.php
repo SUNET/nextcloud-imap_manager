@@ -58,11 +58,12 @@ class SyncManagerMapper extends QBMapper
    * @param string $calendar
    * @param string $contacts
    * @param string $email
+   * @param string $enabled
    * @param string $primary
    * @return SyncManager
    * @throws \InvalidArgumentException
    */
-  public function set(string $userId, string $frequency, bool $calendar, bool $contacts, bool $email, string $primary): SyncManager
+  public function set(string $userId, string $frequency, bool $calendar, bool $contacts, bool $email, string $primary, bool $enabled): SyncManager
   {
     $user = $this->userManager->get($userId);
     if (!$user) {
@@ -82,6 +83,7 @@ class SyncManagerMapper extends QBMapper
       $syncManager->setContactsEnabled(boolval($contacts));
       $syncManager->setDestination(strval($destination));
       $syncManager->setEmailEnabled(boolval($email));
+      $syncManager->setEnabled(boolval($enabled));
       $syncManager->setFrequency(strval($frequency));
       $syncManager->setSource(strval($source));
       $syncManager->setUpdatedAt($now);
@@ -97,6 +99,7 @@ class SyncManagerMapper extends QBMapper
       $syncManager->setDestination(strval($destination));
       $syncManager->setEmail(strval($user->getPrimaryEMailAddress()));
       $syncManager->setEmailEnabled(boolval($email));
+      $syncManager->setEnabled(boolval($enabled));
       $syncManager->setFrequency(strval($frequency));
       $syncManager->setSource(strval($source));
       $syncManager->setUpdatedAt($now);
@@ -129,6 +132,7 @@ class SyncManagerMapper extends QBMapper
         'destination' => $syncManager->getDestination(),
         'email' => $syncManager->getEmail(),
         'email_enabled' => boolval($syncManager->getEmailEnabled()),
+        'enabled' => boolval($syncManager->getEnabled()),
         'frequency' => $syncManager->getFrequency(),
         'source' => $syncManager->getSource(),
         'updated_at' => $syncManager->getUpdatedAt(),

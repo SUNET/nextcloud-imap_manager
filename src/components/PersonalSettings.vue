@@ -94,6 +94,16 @@
         provider will be backup.
       </p>
       <form>
+        <div id="sync_enabled">
+          <input
+            type="checkbox"
+            id="enabled"
+            v-model="syncEnabled"
+            style="vertical-align: middle"
+            :checked="syncEnabled"
+          />
+          <label for="enbled">Enable sync</label>
+        </div>
         <div id="select_m365">
           <input
             type="radio"
@@ -129,7 +139,7 @@
             id="calendar"
             v-model="calendarValue"
             style="vertical-align: middle"
-            checked="{{calendarValue}}"
+            :checked="calendarValue"
             required
           />
           <label for="calendar">Calendar</label>
@@ -138,7 +148,7 @@
             id="contacts"
             v-model="contactsValue"
             style="vertical-align: middle"
-            checked="{{contactsValue}}"
+            :checked="contactsValue"
             required
           />
           <label for="contacts">Contacts</label>
@@ -147,7 +157,7 @@
             id="email"
             v-model="emailValue"
             style="vertical-align: middle"
-            checked="{{emailValue}}"
+            :checked="emailValue"
           />
           <label for="email">E-Mail</label>
         </div>
@@ -156,7 +166,6 @@
           v-model="syncActive"
           @click="set_sync()"
           aria-label="Save"
-          :disabled="disabled"
           :size="size"
           variant="primary"
         >
@@ -222,6 +231,7 @@ export default {
       calendarValue: true,
       contactsValue: true,
       emailValue: true,
+      syncEnabled: false,
       isCopied: false,
       name: "",
       showDialog: false,
@@ -291,8 +301,10 @@ export default {
         this.calendarValue = Boolean(values.calendar_enabled);
         this.contactsValue = Boolean(values.contacts_enabled);
         this.emailValue = Boolean(values.email_enabled);
+        this.syncEnabled = Boolean(values.enabled);
         this.radioValue = values.source;
         this.syncActive = true;
+        console.log("radioValue: " + this.radioValue + " " + values.source);
       }
       console.log("IMAP passwords and sync settings loaded");
     },
@@ -331,19 +343,28 @@ export default {
       var calendar = Boolean(this.calendarValue);
       var contacts = Boolean(this.contactsValue);
       var email = Boolean(this.emailValue);
+      var enabled = Boolean(this.syncEnabled);
       var primary = this.radioValue;
       let params = {
         frequency: frequency,
         calendar: calendar,
         contacts: contacts,
         email: email,
+        enabled: enabled,
         primary: primary,
       };
       console.log(params);
       let result = await this.csrfRequest(url, "POST", params);
       if (result.data.success == true) {
         console.log("New sync job set");
-        this.syncActive = true;
+        if (this.syncActive) {
+          this.syncActive = false;
+          setTimeout(() => {
+            this.syncActive = true;
+          }, 300);
+        } else {
+          this.syncActive = true;
+        }
       }
     },
     async unset(id) {
