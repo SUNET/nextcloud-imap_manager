@@ -19,5 +19,8 @@ return [
     ['name' => 'api#get', 'url' => '/get', 'verb' => 'GET'],
     ['name' => 'api#set', 'url' => '/set', 'verb' => 'POST'],
     ['name' => 'api#set_sync', 'url' => '/set_sync', 'verb' => 'POST'],
+    ['name' => 'api#get_config', 'url' => '/admin/config', 'verb' => 'GET'],
+    ['name' => 'api#set_config', 'url' => '/admin/config', 'verb' => 'POST'],
+    ['name' => 'api#test_connection', 'url' => '/admin/test', 'verb' => 'POST'],
   ]
 ];
