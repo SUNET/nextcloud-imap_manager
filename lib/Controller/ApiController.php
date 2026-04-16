@@ -10,6 +10,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\IAppConfig;
 use OCP\IRequest;
 use Psr\Log\LoggerInterface;
 
@@ -21,6 +22,7 @@ class ApiController extends Controller
     private ImapManagerMapper $imapManagerMapper,
     private SyncManagerMapper $syncManagerMapper,
     private LoggerInterface $logger,
+    private IAppConfig $appConfig,
     IRequest $request,
   ) {
     parent::__construct($appName, $request);
@@ -103,5 +105,47 @@ class ApiController extends Controller
       return new JSONResponse(array('success' => true), Http::STATUS_OK);
     }
     return new JSONResponse(array('success' => false), Http::STATUS_BAD_GATEWAY);
+  }
+
+  /**
+   *
+   * @return JSONResponse
+   **/
+  public function getConfig(): JSONResponse
+  {
+    $config = [
+      'stalwart_url' => $this->appConfig->getValueString('imap_manager', 'stalwart_url', ''),
+      'stalwart_admin_user' => $this->appConfig->getValueString('imap_manager', 'stalwart_admin_user', ''),
+      'stalwart_admin_password' => $this->appConfig->getValueString('imap_manager', 'stalwart_admin_password') !== '' ? '********' : '',
+      'dovecot_enabled' => $this->appConfig->getValueBool('imap_manager', 'dovecot_enabled', true),
+      'stalwart_enabled' => $this->appConfig->getValueBool('imap_manager', 'stalwart_enabled', false),
+    ];
+    return new JSONResponse($config, Http::STATUS_OK);
+  }
+
+  /**
+   *
+   * @return JSONResponse
+   **/
+  public function setConfig(): JSONResponse
+  {
+    $params = $this->request->getParams();
+    $this->appConfig->setValueString('imap_manager', 'stalwart_url', strval($params['stalwart_url'] ?? ''));
+    $this->appConfig->setValueString('imap_manager', 'stalwart_admin_user', strval($params['stalwart_admin_user'] ?? ''));
+    if (isset($params['stalwart_admin_password']) && $params['stalwart_admin_password'] !== '********') {
+      $this->appConfig->setValueString('imap_manager', 'stalwart_admin_password', strval($params['stalwart_admin_password']), sensitive: true);
+    }
+    $this->appConfig->setValueBool('imap_manager', 'dovecot_enabled', boolval($params['dovecot_enabled'] ?? true));
+    $this->appConfig->setValueBool('imap_manager', 'stalwart_enabled', boolval($params['stalwart_enabled'] ?? false));
+    return new JSONResponse(['status' => 'success'], Http::STATUS_OK);
+  }
+
+  /**
+   *
+   * @return JSONResponse
+   **/
+  public function testConnection(): JSONResponse
+  {
+    return new JSONResponse(['status' => 'not_implemented'], Http::STATUS_OK);
   }
 }
