@@ -22,5 +22,8 @@ return [
     ['name' => 'api#get_config', 'url' => '/admin/config', 'verb' => 'GET'],
     ['name' => 'api#set_config', 'url' => '/admin/config', 'verb' => 'POST'],
     ['name' => 'api#test_connection', 'url' => '/admin/test', 'verb' => 'POST'],
+    ['name' => 'api#get_stalwart', 'url' => '/stalwart/get', 'verb' => 'GET'],
+    ['name' => 'api#set_stalwart', 'url' => '/stalwart/set', 'verb' => 'POST'],
+    ['name' => 'api#delete_stalwart', 'url' => '/stalwart/delete', 'verb' => 'POST'],
   ]
 ];
