@@ -44,6 +44,10 @@ class StalwartService
             $options['body'] = json_encode($body);
         }
         $response = $client->$method($url, $options);
+        $statusCode = $response->getStatusCode();
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new \RuntimeException('Stalwart API returned HTTP ' . $statusCode);
+        }
         $responseBody = $response->getBody();
         return json_decode($responseBody, true) ?? [];
     }
@@ -87,8 +91,7 @@ class StalwartService
     public function testConnection(): bool
     {
         try {
-            $adminUser = $this->appConfig->getValueString('imap_manager', 'stalwart_admin_user', 'admin');
-            $this->request('get', '/api/principal/' . urlencode($adminUser));
+            $this->request('get', '/api/principal');
             return true;
         } catch (\Exception $e) {
             $this->logger->warning('Stalwart connection test failed: ' . $e->getMessage());

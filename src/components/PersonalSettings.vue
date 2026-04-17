@@ -376,23 +376,9 @@ export default {
         this.isCopied = false;
       }, 2000);
     },
-    async csrfRequest(incoming_url, method, payload) {
-      let csrf_url = generateUrl("/csrftoken");
-      let csrfresult = await axios.get(csrf_url);
-      console.log("CSRF token loaded");
-      let csrftoken = csrfresult.data.token;
-      let url = generateUrl(incoming_url);
-      let result = await axios({
-        method: method,
-        url: url,
-        data: payload,
-        headers: { csrftoken },
-      });
-      return result;
-    },
     async get() {
-      let url = "/apps/imap_manager/get";
-      let result = await this.csrfRequest(url, "GET");
+      let url = generateUrl("/apps/imap_manager/get");
+      let result = await axios.get(url);
       if ("ids" in result.data) {
         this.tokens = result.data.ids;
       }
@@ -429,10 +415,10 @@ export default {
         return;
       }
       this.token = uuidv4();
-      let url = "/apps/imap_manager/set";
+      let url = generateUrl("/apps/imap_manager/set");
 
       let params = { token: this.token, name: this.name };
-      let result = await this.csrfRequest(url, "POST", params);
+      let result = await axios.post(url, params);
       if (result.data.success == true) {
         console.log("New IMAP password set");
         this.showDialog = true;
@@ -445,7 +431,7 @@ export default {
     },
     async set_sync() {
       // TODO: Implement delete of sync job
-      let url = "/apps/imap_manager/set_sync";
+      let url = generateUrl("/apps/imap_manager/set_sync");
       var selection = document.getElementById("select_options");
       var frequency = this.optionsValue;
       for (var i = 0; i < selection.children.length; i++) {
@@ -470,7 +456,7 @@ export default {
         primary: primary,
       };
       console.log(params);
-      let result = await this.csrfRequest(url, "POST", params);
+      let result = await axios.post(url, params);
       if (result.data.success == true) {
         console.log("New sync job set");
         if (this.syncActive) {
@@ -484,9 +470,9 @@ export default {
       }
     },
     async unset(id) {
-      let url = "/apps/imap_manager/delete";
+      let url = generateUrl("/apps/imap_manager/delete");
       let params = { id: id };
-      let result = await this.csrfRequest(url, "POST", params);
+      let result = await axios.post(url, params);
       if (result.data.success == true) {
         for (var i = 0; i < this.tokens.length; i++) {
           var token = this.tokens[i];
@@ -499,8 +485,8 @@ export default {
       }
     },
     async loadStalwartPasswords() {
-      let url = "/apps/imap_manager/stalwart/get";
-      let result = await this.csrfRequest(url, "GET");
+      let url = generateUrl("/apps/imap_manager/stalwart/get");
+      let result = await axios.get(url);
       if (result.data.success) {
         this.stalwartPasswords = result.data.passwords.map((p) => ({
           ...p,
@@ -513,9 +499,9 @@ export default {
         return;
       }
       this.stalwartToken = uuidv4();
-      let url = "/apps/imap_manager/stalwart/set";
+      let url = generateUrl("/apps/imap_manager/stalwart/set");
       let params = { name: this.stalwartName, password: this.stalwartToken };
-      let result = await this.csrfRequest(url, "POST", params);
+      let result = await axios.post(url, params);
       if (result.data.success) {
         this.showStalwartDialog = true;
         this.stalwartPasswords.push({
@@ -527,9 +513,9 @@ export default {
       }
     },
     async deleteStalwart(name, password) {
-      let url = "/apps/imap_manager/stalwart/delete";
+      let url = generateUrl("/apps/imap_manager/stalwart/delete");
       let params = { name: name, password: password };
-      let result = await this.csrfRequest(url, "POST", params);
+      let result = await axios.post(url, params);
       if (result.data.success) {
         this.stalwartPasswords = this.stalwartPasswords.filter(
           (p) => !(p.name === name && p.password === password)
