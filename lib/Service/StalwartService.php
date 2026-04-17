@@ -46,7 +46,12 @@ class StalwartService
         $response = $client->$method($url, $options);
         $statusCode = $response->getStatusCode();
         if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \RuntimeException('Stalwart API returned HTTP ' . $statusCode);
+            throw new \RuntimeException(sprintf(
+                'Stalwart API %s %s returned HTTP %d',
+                strtoupper($method),
+                $path,
+                $statusCode
+            ));
         }
         $responseBody = $response->getBody();
         return json_decode($responseBody, true) ?? [];

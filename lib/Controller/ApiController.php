@@ -72,8 +72,11 @@ class ApiController extends Controller
   public function set(): JSONResponse
   {
     $params = $this->request->getParams();
-    $name = strval($params['name']);
-    $token = strval($params['token']);
+    $name = strval($params['name'] ?? '');
+    $token = strval($params['token'] ?? '');
+    if ($name === '' || $token === '') {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
+    }
     try {
       $imapManager = $this->imapManagerMapper->set($this->userId, $token, $name);
     } catch (\InvalidArgumentException $e) {
@@ -90,18 +93,18 @@ class ApiController extends Controller
   public function setSync(): JSONResponse
   {
     $params = $this->request->getParams();
-    $frequency = strval($params['frequency']);
+    $frequency = strval($params['frequency'] ?? '');
     if (!in_array($frequency, ['daily', 'hourly', 'minutely'], true)) {
       return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
     }
-    $primary = strval($params['primary']);
+    $primary = strval($params['primary'] ?? '');
     if (!in_array($primary, ['sunet', 'm365'], true)) {
       return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
     }
-    $calendar  = boolval($params['calendar']);
-    $contacts  = boolval($params['contacts']);
-    $email     = boolval($params['email']);
-    $enabled   = boolval($params['enabled']);
+    $calendar  = boolval($params['calendar'] ?? false);
+    $contacts  = boolval($params['contacts'] ?? false);
+    $email     = boolval($params['email'] ?? false);
+    $enabled   = boolval($params['enabled'] ?? false);
     try {
       $syncManager = $this->syncManagerMapper->set($this->userId, $frequency, $calendar, $contacts, $email, $primary, $enabled);
     } catch (\InvalidArgumentException $e) {
