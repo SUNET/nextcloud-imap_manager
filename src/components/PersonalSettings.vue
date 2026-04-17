@@ -6,86 +6,187 @@
     description="Generate app-password for IMAP."
     @default="populate"
   >
-    <div class="wrapper">
-      <NcTextField
-        id="Name"
-        label="Name"
-        v-model="name"
-        placeholder="Enter app-password name"
-        style="width: 50%"
-      />
-      <br />
-      <NcButton
-        @click="set()"
-        aria-label="Save"
-        :disabled="disabled"
-        :size="size"
-        variant="primary"
-      >
-        <template #default>Save</template>
-      </NcButton>
-    </div>
-    <br />
-    <NcDialog v-if="showDialog" name="App-password" :can-close="false">
-      <template #actions>
+    <div v-if="dovecotEnabled">
+      <p><strong>Dovecot Password Manager</strong></p>
+      <div class="wrapper">
+        <NcTextField
+          id="Name"
+          label="Name"
+          v-model="name"
+          placeholder="Enter app-password name"
+          style="width: 50%"
+        />
+        <br />
         <NcButton
-          @click="showDialog = false"
-          aria-label="Cancel"
-          variant="tertiary"
+          @click="set()"
+          aria-label="Save"
+          :disabled="disabled"
+          :size="size"
+          variant="primary"
         >
-          <template #icon>
-            <Cancel :size="16" />
-          </template>
+          <template #default>Save</template>
         </NcButton>
-        <NcButton @click="copy()" aria-label="Copy" variant="tertiary">
-          <template #icon>
-            <IconClipboard size="16" />
-          </template>
-        </NcButton>
-      </template>
-      <template #default>
-        <div class="wrapper">
-          <div>App-password will not be shown again.</div>
-          <div id="app-password">
-            <NcPasswordField
-              id="token"
-              v-model="token"
-              :label="App - password"
-            />
+      </div>
+      <br />
+      <NcDialog v-if="showDialog" name="App-password" :can-close="false">
+        <template #actions>
+          <NcButton
+            @click="showDialog = false"
+            aria-label="Cancel"
+            variant="tertiary"
+          >
+            <template #icon>
+              <Cancel :size="16" />
+            </template>
+          </NcButton>
+          <NcButton @click="copy()" aria-label="Copy" variant="tertiary">
+            <template #icon>
+              <IconClipboard size="16" />
+            </template>
+          </NcButton>
+        </template>
+        <template #default>
+          <div class="wrapper">
+            <div>App-password will not be shown again.</div>
+            <div id="app-password">
+              <NcPasswordField
+                id="token"
+                v-model="token"
+                :label="App - password"
+              />
+            </div>
           </div>
-        </div>
-      </template>
-    </NcDialog>
-    <div class="wrapper" v-if="tokens.length > 0">
-      <p><strong>Issued app-passwords</strong></p>
-      <ul style="width: 50%">
-        <NcListItem
-          v-for="token in tokens"
-          v-bind:key="token.id"
-          bold
-          compact="true"
-          name="token.name"
-          oneline
+        </template>
+      </NcDialog>
+      <div class="wrapper" v-if="tokens.length > 0">
+        <p><strong>Issued app-passwords</strong></p>
+        <ul style="width: 50%">
+          <NcListItem
+            v-for="token in tokens"
+            v-bind:key="token.id"
+            bold
+            compact="true"
+            name="token.name"
+            oneline
+          >
+            <template #icon>
+              <Key :size="16" />
+            </template>
+            <template #name>
+              {{ token.name }}
+            </template>
+            <template #details>
+              <NcButton
+                @click="unset(token.id)"
+                aria-label="Delete"
+                variant="tertiary"
+              >
+                <template #icon>
+                  <Delete :size="16" />
+                </template>
+              </NcButton>
+            </template>
+          </NcListItem>
+        </ul>
+      </div>
+    </div>
+    <div v-if="stalwartEnabled">
+      <p><strong>Stalwart Password Manager</strong></p>
+      <div class="wrapper">
+        <NcTextField
+          id="StalwartName"
+          label="Name"
+          v-model="stalwartName"
+          placeholder="Enter app-password name"
+          style="width: 50%"
+        />
+        <br />
+        <NcButton
+          @click="setStalwart()"
+          aria-label="Save"
+          variant="primary"
         >
-          <template #icon>
-            <Key :size="16" />
-          </template>
-          <template #name>
-            {{ token.name }}
-          </template>
-          <template #details>
-            <NcButton
-              @click="unset(token.id)"
-              aria-label="Delete"
-              variant="tertiary"
-            >
-              <template #icon>
-                <Delete :size="16" />
-              </template>
-            </NcButton>
-          </template>
-        </NcListItem>
-      </ul>
+          <template #default>Generate</template>
+        </NcButton>
+      </div>
+      <br />
+      <NcDialog v-if="showStalwartDialog" name="Stalwart App Password" :can-close="false">
+        <template #actions>
+          <NcButton
+            @click="showStalwartDialog = false"
+            aria-label="Cancel"
+            variant="tertiary"
+          >
+            <template #icon>
+              <Cancel :size="16" />
+            </template>
+          </NcButton>
+          <NcButton @click="copyStalwart()" aria-label="Copy" variant="tertiary">
+            <template #icon>
+              <IconClipboard size="16" />
+            </template>
+          </NcButton>
+        </template>
+        <template #default>
+          <div class="wrapper">
+            <div>Save this password now — you can reveal it later, but it's easier to copy it now.</div>
+            <div>
+              <NcPasswordField
+                id="stalwart-token"
+                v-model="stalwartToken"
+                label="App Password"
+              />
+            </div>
+          </div>
+        </template>
+      </NcDialog>
+      <div class="wrapper" v-if="stalwartPasswords.length > 0">
+        <p><strong>Issued Stalwart passwords</strong></p>
+        <ul style="width: 50%">
+          <NcListItem
+            v-for="pw in stalwartPasswords"
+            v-bind:key="pw.name + pw.password"
+            bold
+            compact="true"
+            :name="pw.name"
+            oneline
+          >
+            <template #icon>
+              <Key :size="16" />
+            </template>
+            <template #name>
+              {{ pw.name }}
+            </template>
+            <template #subname>
+              {{ pw.revealed ? pw.password : '••••••••' }}
+            </template>
+            <template #details>
+              <NcButton
+                @click="pw.revealed = !pw.revealed"
+                aria-label="Reveal"
+                variant="tertiary"
+              >
+                <template #icon>
+                  <EyeOff v-if="pw.revealed" :size="16" />
+                  <Eye v-else :size="16" />
+                </template>
+              </NcButton>
+              <NcButton
+                @click="deleteStalwart(pw.name, pw.password)"
+                aria-label="Delete"
+                variant="tertiary"
+              >
+                <template #icon>
+                  <Delete :size="16" />
+                </template>
+              </NcButton>
+            </template>
+          </NcListItem>
+        </ul>
+      </div>
+    </div>
+    <div v-if="!dovecotEnabled && !stalwartEnabled">
+      <p>No mail backends configured. Contact your administrator.</p>
     </div>
     <div class="wrapper">
       <p><strong>Sync settings</strong></p>
@@ -185,6 +286,8 @@ import Delete from "vue-material-design-icons/Delete.vue";
 import IconClipboard from "vue-material-design-icons/ContentCopy.vue";
 import IconStar from "vue-material-design-icons/Star.vue";
 import IconStarOutline from "vue-material-design-icons/StarOutline.vue";
+import Eye from "vue-material-design-icons/Eye.vue";
+import EyeOff from "vue-material-design-icons/EyeOff.vue";
 import Key from "vue-material-design-icons/Key.vue";
 
 import {
@@ -211,6 +314,8 @@ export default {
   components: {
     Cancel,
     Delete,
+    Eye,
+    EyeOff,
     IconClipboard,
     IconStar,
     IconStarOutline,
@@ -241,6 +346,12 @@ export default {
       radioValue: "m365",
       optionsValue: "daily",
       whatValue: [],
+      dovecotEnabled: true,
+      stalwartEnabled: false,
+      stalwartPasswords: [],
+      stalwartName: "",
+      stalwartToken: "",
+      showStalwartDialog: false,
     };
   },
   methods: {
@@ -285,6 +396,8 @@ export default {
       if ("ids" in result.data) {
         this.tokens = result.data.ids;
       }
+      this.dovecotEnabled = result.data.dovecot_enabled ?? true;
+      this.stalwartEnabled = result.data.stalwart_enabled ?? false;
       let values = result.data.values;
       console.log(values);
       if (values) {
@@ -307,6 +420,9 @@ export default {
         console.log("radioValue: " + this.radioValue + " " + values.source);
       }
       console.log("IMAP passwords and sync settings loaded");
+      if (this.stalwartEnabled) {
+        await this.loadStalwartPasswords();
+      }
     },
     async set() {
       if (!this.name) {
@@ -380,6 +496,56 @@ export default {
             break;
           }
         }
+      }
+    },
+    async loadStalwartPasswords() {
+      let url = "/apps/imap_manager/stalwart/get";
+      let result = await this.csrfRequest(url, "GET");
+      if (result.data.success) {
+        this.stalwartPasswords = result.data.passwords.map((p) => ({
+          ...p,
+          revealed: false,
+        }));
+      }
+    },
+    async setStalwart() {
+      if (!this.stalwartName) {
+        return;
+      }
+      this.stalwartToken = uuidv4();
+      let url = "/apps/imap_manager/stalwart/set";
+      let params = { name: this.stalwartName, password: this.stalwartToken };
+      let result = await this.csrfRequest(url, "POST", params);
+      if (result.data.success) {
+        this.showStalwartDialog = true;
+        this.stalwartPasswords.push({
+          name: this.stalwartName,
+          password: this.stalwartToken,
+          revealed: false,
+        });
+        this.stalwartName = "";
+      }
+    },
+    async deleteStalwart(name, password) {
+      let url = "/apps/imap_manager/stalwart/delete";
+      let params = { name: name, password: password };
+      let result = await this.csrfRequest(url, "POST", params);
+      if (result.data.success) {
+        this.stalwartPasswords = this.stalwartPasswords.filter(
+          (p) => !(p.name === name && p.password === password)
+        );
+      }
+    },
+    async copyStalwart() {
+      try {
+        await navigator.clipboard.writeText(this.stalwartToken);
+        showSuccess(t("imap_manager", "Password copied to the clipboard"));
+        this.showStalwartDialog = false;
+      } catch (e) {
+        window.prompt(
+          t("imap_manager", "Clipboard not available. Please copy the password manually."),
+          this.stalwartToken,
+        );
       }
     },
   },
