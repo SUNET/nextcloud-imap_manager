@@ -306,6 +306,11 @@ import axios from "@nextcloud/axios";
 import { generateUrl } from "@nextcloud/router";
 import { showSuccess } from "@nextcloud/dialogs";
 import { t } from "@nextcloud/l10n";
+import {
+  confirmPassword,
+  isPasswordConfirmationRequired,
+} from "@nextcloud/password-confirmation";
+import "@nextcloud/password-confirmation/style.css";
 import { v4 as uuidv4 } from "uuid";
 
 export default {
@@ -418,6 +423,9 @@ export default {
       let url = generateUrl("/apps/imap_manager/set");
 
       let params = { token: this.token, name: this.name };
+      if (isPasswordConfirmationRequired()) {
+        await confirmPassword();
+      }
       let result = await axios.post(url, params);
       if (result.data.success == true) {
         console.log("New IMAP password set");
@@ -472,6 +480,9 @@ export default {
     async unset(id) {
       let url = generateUrl("/apps/imap_manager/delete");
       let params = { id: id };
+      if (isPasswordConfirmationRequired()) {
+        await confirmPassword();
+      }
       let result = await axios.post(url, params);
       if (result.data.success == true) {
         for (var i = 0; i < this.tokens.length; i++) {
@@ -501,6 +512,9 @@ export default {
       this.stalwartToken = uuidv4();
       let url = generateUrl("/apps/imap_manager/stalwart/set");
       let params = { name: this.stalwartName, password: this.stalwartToken };
+      if (isPasswordConfirmationRequired()) {
+        await confirmPassword();
+      }
       let result = await axios.post(url, params);
       if (result.data.success) {
         this.showStalwartDialog = true;
@@ -515,6 +529,9 @@ export default {
     async deleteStalwart(name, password) {
       let url = generateUrl("/apps/imap_manager/stalwart/delete");
       let params = { name: name, password: password };
+      if (isPasswordConfirmationRequired()) {
+        await confirmPassword();
+      }
       let result = await axios.post(url, params);
       if (result.data.success) {
         this.stalwartPasswords = this.stalwartPasswords.filter(

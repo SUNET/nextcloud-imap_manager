@@ -85,6 +85,11 @@ import {
 
 import axios from "@nextcloud/axios";
 import { generateUrl } from "@nextcloud/router";
+import {
+  confirmPassword,
+  isPasswordConfirmationRequired,
+} from "@nextcloud/password-confirmation";
+import "@nextcloud/password-confirmation/style.css";
 
 export default {
   name: "AdminSettings",
@@ -128,6 +133,9 @@ export default {
 
     async save() {
       const url = generateUrl("/apps/imap_manager/admin/config");
+      if (isPasswordConfirmationRequired()) {
+        await confirmPassword();
+      }
       await axios.post(url, {
         dovecot_enabled: this.dovecotEnabled,
         stalwart_enabled: this.stalwartEnabled,
