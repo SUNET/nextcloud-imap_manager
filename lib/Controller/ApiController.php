@@ -2,9 +2,7 @@
 
 namespace OCA\ImapManager\Controller;
 
-use OCA\ImapManager\Db\ImapManager;
 use OCA\ImapManager\Db\ImapManagerMapper;
-use OCA\ImapManager\Db\SyncManager;
 use OCA\ImapManager\Db\SyncManagerMapper;
 use OCA\ImapManager\Service\StalwartService;
 use OCP\AppFramework\Controller;
@@ -72,17 +70,12 @@ class ApiController extends Controller
     $params = $this->request->getParams();
     $name = strval($params['name']);
     $token = strval($params['token']);
-    /**
-     * @var ImapManager
-     */
-    $imapManager = $this->imapManagerMapper->set($this->userId, $token, $name);
-    $response = true;
-    $status = Http::STATUS_OK;
-    if (!$imapManager) {
-      $response = false;
-      $status = Http::STATUS_BAD_GATEWAY;
+    try {
+      $imapManager = $this->imapManagerMapper->set($this->userId, $token, $name);
+    } catch (\InvalidArgumentException $e) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
     }
-    return new JSONResponse(array('success' => $response, 'id' => $imapManager->getId()), $status);
+    return new JSONResponse(['success' => true, 'id' => $imapManager->getId()], Http::STATUS_OK);
   }
 
   /**
@@ -94,22 +87,23 @@ class ApiController extends Controller
   {
     $params = $this->request->getParams();
     $frequency = strval($params['frequency']);
+    if (!in_array($frequency, ['daily', 'hourly', 'minutely'], true)) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
+    }
+    $primary = strval($params['primary']);
+    if (!in_array($primary, ['sunet', 'm365'], true)) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
+    }
     $calendar  = boolval($params['calendar']);
     $contacts  = boolval($params['contacts']);
     $email     = boolval($params['email']);
     $enabled   = boolval($params['enabled']);
-    $primary   = strval($params['primary']);
-    /**
-     * @var SyncManager
-     */
-    $syncManager = $this->syncManagerMapper->set($this->userId, $frequency, $calendar, $contacts, $email, $primary, $enabled);
-    $response = true;
-    $status = Http::STATUS_OK;
-    if (!$syncManager) {
-      $response = false;
-      $status = Http::STATUS_BAD_GATEWAY;
+    try {
+      $syncManager = $this->syncManagerMapper->set($this->userId, $frequency, $calendar, $contacts, $email, $primary, $enabled);
+    } catch (\InvalidArgumentException $e) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
     }
-    return new JSONResponse(array('success' => $response, 'id' => $syncManager->getId()), $status);
+    return new JSONResponse(['success' => true, 'id' => $syncManager->getId()], Http::STATUS_OK);
   }
 
   /**
@@ -119,12 +113,16 @@ class ApiController extends Controller
   #[NoAdminRequired]
   public function delete(int $id): JSONResponse
   {
-    $imapManager = $this->imapManagerMapper->get($id);
-    if ($imapManager) {
-      $this->imapManagerMapper->delete($imapManager);
-      return new JSONResponse(array('success' => true), Http::STATUS_OK);
+    try {
+      $imapManager = $this->imapManagerMapper->get($id);
+    } catch (\InvalidArgumentException $e) {
+      return new JSONResponse(['success' => false], Http::STATUS_NOT_FOUND);
     }
-    return new JSONResponse(array('success' => false), Http::STATUS_BAD_GATEWAY);
+    if ($imapManager->getUserId() !== $this->userId) {
+      return new JSONResponse(['success' => false], Http::STATUS_FORBIDDEN);
+    }
+    $this->imapManagerMapper->delete($imapManager);
+    return new JSONResponse(['success' => true], Http::STATUS_OK);
   }
 
   /**
@@ -203,7 +201,7 @@ class ApiController extends Controller
     if (empty($name) || empty($password)) {
       return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
     }
-    if (str_contains($name, '$')) {
+    if (str_contains($name, '$') || str_contains($password, '$')) {
       return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
     }
     $email = $this->getUserEmail();
@@ -227,7 +225,7 @@ class ApiController extends Controller
     if (empty($name) || empty($password)) {
       return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
     }
-    if (str_contains($name, '$')) {
+    if (str_contains($name, '$') || str_contains($password, '$')) {
       return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
     }
     $email = $this->getUserEmail();
