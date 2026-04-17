@@ -8,5 +8,9 @@ webpackConfig.entry = {
     import: path.join(__dirname, "src", "personalSettings.js"),
     filename: appId + "-personalSettings.js",
   },
+  adminSettings: {
+    import: path.join(__dirname, "src", "adminSettings.js"),
+    filename: appId + "-adminSettings.js",
+  },
 };
 module.exports = webpackConfig;
