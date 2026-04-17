@@ -13,6 +13,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
+use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 class ApiController extends Controller
@@ -25,9 +26,16 @@ class ApiController extends Controller
     private LoggerInterface $logger,
     private IAppConfig $appConfig,
     private StalwartService $stalwartService,
+    private IUserManager $userManager,
     IRequest $request,
   ) {
     parent::__construct($appName, $request);
+  }
+
+  private function getUserEmail(): string
+  {
+    $user = $this->userManager->get($this->userId);
+    return $user->getEMailAddress() ?? $this->userId;
   }
 
   /**
@@ -39,9 +47,15 @@ class ApiController extends Controller
   {
     $ids = $this->imapManagerMapper->getIdsAndNames($this->userId);
     $values = $this->syncManagerMapper->getValues($this->userId);
-    $response = true;
-    $status = Http::STATUS_OK;
-    return new JSONResponse(array('success' => $response, 'ids' => $ids, 'values' => $values), $status);
+    $dovecotEnabled = $this->appConfig->getValueBool('imap_manager', 'dovecot_enabled', true);
+    $stalwartEnabled = $this->appConfig->getValueBool('imap_manager', 'stalwart_enabled', false);
+    return new JSONResponse([
+      'success' => true,
+      'ids' => $ids,
+      'values' => $values,
+      'dovecot_enabled' => $dovecotEnabled,
+      'stalwart_enabled' => $stalwartEnabled,
+    ], Http::STATUS_OK);
   }
 
   /**
@@ -153,5 +167,43 @@ class ApiController extends Controller
       ['status' => $success ? 'success' : 'error'],
       $success ? Http::STATUS_OK : Http::STATUS_BAD_GATEWAY
     );
+  }
+
+  #[NoAdminRequired]
+  public function getStalwart(): JSONResponse
+  {
+    $email = $this->getUserEmail();
+    $passwords = $this->stalwartService->listPasswords($email);
+    return new JSONResponse(['success' => true, 'passwords' => $passwords], Http::STATUS_OK);
+  }
+
+  #[NoAdminRequired]
+  public function setStalwart(): JSONResponse
+  {
+    $params = $this->request->getParams();
+    $name = strval($params['name']);
+    $password = strval($params['password']);
+    $email = $this->getUserEmail();
+    try {
+      $this->stalwartService->createPassword($email, $name, $password);
+      return new JSONResponse(['success' => true], Http::STATUS_OK);
+    } catch (\Exception $e) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_GATEWAY);
+    }
+  }
+
+  #[NoAdminRequired]
+  public function deleteStalwart(): JSONResponse
+  {
+    $params = $this->request->getParams();
+    $name = strval($params['name']);
+    $password = strval($params['password']);
+    $email = $this->getUserEmail();
+    try {
+      $this->stalwartService->deletePassword($email, $name, $password);
+      return new JSONResponse(['success' => true], Http::STATUS_OK);
+    } catch (\Exception $e) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_GATEWAY);
+    }
   }
 }
