@@ -9,6 +9,7 @@ use OCA\ImapManager\Db\SyncManagerMapper;
 use OCA\ImapManager\Service\StalwartService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\AdminRequired;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
@@ -130,6 +131,7 @@ class ApiController extends Controller
    *
    * @return JSONResponse
    **/
+  #[AdminRequired]
   public function getConfig(): JSONResponse
   {
     $config = [
@@ -146,6 +148,7 @@ class ApiController extends Controller
    *
    * @return JSONResponse
    **/
+  #[AdminRequired]
   public function setConfig(): JSONResponse
   {
     $params = $this->request->getParams();
@@ -163,6 +166,7 @@ class ApiController extends Controller
    *
    * @return JSONResponse
    **/
+  #[AdminRequired]
   public function testConnection(): JSONResponse
   {
     $success = $this->stalwartService->testConnection();
@@ -220,6 +224,12 @@ class ApiController extends Controller
     $params = $this->request->getParams();
     $name = strval($params['name'] ?? '');
     $password = strval($params['password'] ?? '');
+    if (empty($name) || empty($password)) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
+    }
+    if (str_contains($name, '$')) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
+    }
     $email = $this->getUserEmail();
     try {
       $this->stalwartService->deletePassword($email, $name, $password);

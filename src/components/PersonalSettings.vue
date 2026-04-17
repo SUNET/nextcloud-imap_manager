@@ -52,7 +52,7 @@
               <NcPasswordField
                 id="token"
                 v-model="token"
-                :label="App - password"
+                label="App-password"
               />
             </div>
           </div>
