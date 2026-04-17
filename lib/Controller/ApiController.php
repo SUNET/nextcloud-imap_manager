@@ -35,6 +35,9 @@ class ApiController extends Controller
   private function getUserEmail(): string
   {
     $user = $this->userManager->get($this->userId);
+    if ($user === null) {
+      return $this->userId;
+    }
     return $user->getEMailAddress() ?? $this->userId;
   }
 
@@ -172,17 +175,33 @@ class ApiController extends Controller
   #[NoAdminRequired]
   public function getStalwart(): JSONResponse
   {
+    if (!$this->appConfig->getValueBool('imap_manager', 'stalwart_enabled', false)) {
+      return new JSONResponse(['success' => false], Http::STATUS_FORBIDDEN);
+    }
     $email = $this->getUserEmail();
-    $passwords = $this->stalwartService->listPasswords($email);
-    return new JSONResponse(['success' => true, 'passwords' => $passwords], Http::STATUS_OK);
+    try {
+      $passwords = $this->stalwartService->listPasswords($email);
+      return new JSONResponse(['success' => true, 'passwords' => $passwords], Http::STATUS_OK);
+    } catch (\Exception $e) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_GATEWAY);
+    }
   }
 
   #[NoAdminRequired]
   public function setStalwart(): JSONResponse
   {
+    if (!$this->appConfig->getValueBool('imap_manager', 'stalwart_enabled', false)) {
+      return new JSONResponse(['success' => false], Http::STATUS_FORBIDDEN);
+    }
     $params = $this->request->getParams();
-    $name = strval($params['name']);
-    $password = strval($params['password']);
+    $name = strval($params['name'] ?? '');
+    $password = strval($params['password'] ?? '');
+    if (empty($name) || empty($password)) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
+    }
+    if (str_contains($name, '$')) {
+      return new JSONResponse(['success' => false], Http::STATUS_BAD_REQUEST);
+    }
     $email = $this->getUserEmail();
     try {
       $this->stalwartService->createPassword($email, $name, $password);
@@ -195,9 +214,12 @@ class ApiController extends Controller
   #[NoAdminRequired]
   public function deleteStalwart(): JSONResponse
   {
+    if (!$this->appConfig->getValueBool('imap_manager', 'stalwart_enabled', false)) {
+      return new JSONResponse(['success' => false], Http::STATUS_FORBIDDEN);
+    }
     $params = $this->request->getParams();
-    $name = strval($params['name']);
-    $password = strval($params['password']);
+    $name = strval($params['name'] ?? '');
+    $password = strval($params['password'] ?? '');
     $email = $this->getUserEmail();
     try {
       $this->stalwartService->deletePassword($email, $name, $password);
