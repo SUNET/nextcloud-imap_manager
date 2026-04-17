@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OCA\ImapManager\Controller;
 
 use OCA\ImapManager\Db\ImapManagerMapper;
@@ -9,6 +11,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AdminRequired;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\PasswordConfirmationRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
@@ -65,6 +68,7 @@ class ApiController extends Controller
    * @return JSONResponse
    **/
   #[NoAdminRequired]
+  #[PasswordConfirmationRequired]
   public function set(): JSONResponse
   {
     $params = $this->request->getParams();
@@ -111,6 +115,7 @@ class ApiController extends Controller
    * @return JSONResponse
    **/
   #[NoAdminRequired]
+  #[PasswordConfirmationRequired]
   public function delete(int $id): JSONResponse
   {
     try {
@@ -147,10 +152,15 @@ class ApiController extends Controller
    * @return JSONResponse
    **/
   #[AdminRequired]
+  #[PasswordConfirmationRequired]
   public function setConfig(): JSONResponse
   {
     $params = $this->request->getParams();
-    $this->appConfig->setValueString('imap_manager', 'stalwart_url', strval($params['stalwart_url'] ?? ''));
+    $stalwartUrl = strval($params['stalwart_url'] ?? '');
+    if ($stalwartUrl !== '' && !$this->isValidStalwartUrl($stalwartUrl)) {
+      return new JSONResponse(['success' => false, 'error' => 'invalid_url'], Http::STATUS_BAD_REQUEST);
+    }
+    $this->appConfig->setValueString('imap_manager', 'stalwart_url', $stalwartUrl);
     $this->appConfig->setValueString('imap_manager', 'stalwart_admin_user', strval($params['stalwart_admin_user'] ?? ''));
     if (isset($params['stalwart_admin_password']) && $params['stalwart_admin_password'] !== '********') {
       $this->appConfig->setValueString('imap_manager', 'stalwart_admin_password', strval($params['stalwart_admin_password']), sensitive: true);
@@ -158,6 +168,15 @@ class ApiController extends Controller
     $this->appConfig->setValueBool('imap_manager', 'dovecot_enabled', boolval($params['dovecot_enabled'] ?? true));
     $this->appConfig->setValueBool('imap_manager', 'stalwart_enabled', boolval($params['stalwart_enabled'] ?? false));
     return new JSONResponse(['status' => 'success'], Http::STATUS_OK);
+  }
+
+  private function isValidStalwartUrl(string $url): bool
+  {
+    $parsed = parse_url($url);
+    if ($parsed === false || !isset($parsed['scheme'], $parsed['host'])) {
+      return false;
+    }
+    return in_array(strtolower($parsed['scheme']), ['http', 'https'], true);
   }
 
   /**
@@ -190,6 +209,7 @@ class ApiController extends Controller
   }
 
   #[NoAdminRequired]
+  #[PasswordConfirmationRequired]
   public function setStalwart(): JSONResponse
   {
     if (!$this->appConfig->getValueBool('imap_manager', 'stalwart_enabled', false)) {
@@ -214,6 +234,7 @@ class ApiController extends Controller
   }
 
   #[NoAdminRequired]
+  #[PasswordConfirmationRequired]
   public function deleteStalwart(): JSONResponse
   {
     if (!$this->appConfig->getValueBool('imap_manager', 'stalwart_enabled', false)) {
