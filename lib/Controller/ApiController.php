@@ -6,6 +6,7 @@ use OCA\ImapManager\Db\ImapManager;
 use OCA\ImapManager\Db\ImapManagerMapper;
 use OCA\ImapManager\Db\SyncManager;
 use OCA\ImapManager\Db\SyncManagerMapper;
+use OCA\ImapManager\Service\StalwartService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -23,6 +24,7 @@ class ApiController extends Controller
     private SyncManagerMapper $syncManagerMapper,
     private LoggerInterface $logger,
     private IAppConfig $appConfig,
+    private StalwartService $stalwartService,
     IRequest $request,
   ) {
     parent::__construct($appName, $request);
@@ -146,6 +148,10 @@ class ApiController extends Controller
    **/
   public function testConnection(): JSONResponse
   {
-    return new JSONResponse(['status' => 'not_implemented'], Http::STATUS_OK);
+    $success = $this->stalwartService->testConnection();
+    return new JSONResponse(
+      ['status' => $success ? 'success' : 'error'],
+      $success ? Http::STATUS_OK : Http::STATUS_BAD_GATEWAY
+    );
   }
 }
