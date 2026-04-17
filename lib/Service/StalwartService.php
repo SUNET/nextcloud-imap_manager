@@ -87,7 +87,8 @@ class StalwartService
     public function testConnection(): bool
     {
         try {
-            $this->request('get', '/api/principal/admin');
+            $adminUser = $this->appConfig->getValueString('imap_manager', 'stalwart_admin_user', 'admin');
+            $this->request('get', '/api/principal/' . urlencode($adminUser));
             return true;
         } catch (\Exception $e) {
             $this->logger->warning('Stalwart connection test failed: ' . $e->getMessage());
