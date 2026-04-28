@@ -6,16 +6,10 @@
   >
     <div class="wrapper">
       <p><strong>Backend Toggles</strong></p>
-      <NcCheckboxRadioSwitch
-        :checked="dovecotEnabled"
-        @update:checked="dovecotEnabled = $event"
-      >
+      <NcCheckboxRadioSwitch v-model="dovecotEnabled">
         Enable Dovecot backend
       </NcCheckboxRadioSwitch>
-      <NcCheckboxRadioSwitch
-        :checked="stalwartEnabled"
-        @update:checked="stalwartEnabled = $event"
-      >
+      <NcCheckboxRadioSwitch v-model="stalwartEnabled">
         Enable Stalwart backend
       </NcCheckboxRadioSwitch>
     </div>
