@@ -1,4 +1,4 @@
-publiccodeYmlVersion: "0.4"
+publiccodeYmlVersion: "0"
 
 name: imap_manager
 url: "https://github.com/SUNET/nextcloud-imap_manager"
@@ -19,8 +19,10 @@ description:
       dovecot and imapsync in Nextcloud.
 
     longDescription: >
-      This app provides a self service interface for
-      dovecot and imapsync in Nextcloud.
+      This app provides a self service interface for dovecot and imapsync
+      in Nextcloud. It allows users to manage their own IMAP accounts and
+      migrate email between accounts using imapsync, without needing
+      administrator intervention.
     features:
       - Self service
 
@@ -31,7 +33,8 @@ maintenance:
   type: "community"
 
   contacts:
-    - name: Micke Nordin <kano@sunet.se>
+    - name: Micke Nordin
+      email: kano@sunet.se
 
 localisation:
   localisationReady: true
