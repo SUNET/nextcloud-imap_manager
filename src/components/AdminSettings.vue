@@ -6,10 +6,10 @@
   >
     <div class="wrapper">
       <p><strong>Backend Toggles</strong></p>
-      <NcCheckboxRadioSwitch v-model="dovecotEnabled">
+      <NcCheckboxRadioSwitch v-model="dovecotEnabled" type="switch">
         Enable Dovecot backend
       </NcCheckboxRadioSwitch>
-      <NcCheckboxRadioSwitch v-model="stalwartEnabled">
+      <NcCheckboxRadioSwitch v-model="stalwartEnabled" type="switch">
         Enable Stalwart backend
       </NcCheckboxRadioSwitch>
     </div>
@@ -54,13 +54,15 @@
       <p v-if="testResult === 'error'" class="msg error">Connection failed</p>
     </div>
     <div class="wrapper">
-      <NcButton @click="save" variant="primary">
+      <NcButton @click="save" variant="primary" :disabled="saving">
         <template #icon>
           <Check :size="20" />
         </template>
         Save
       </NcButton>
       <p v-if="saved" class="msg success">Settings saved</p>
+      <p v-if="loadError" class="msg error">Could not load configuration</p>
+      <p v-if="saveError" class="msg error">Could not save settings</p>
     </div>
   </NcSettingsSection>
 </template>
@@ -107,6 +109,9 @@ export default {
       stalwartAdminPassword: "",
       testResult: null,
       saved: false,
+      saving: false,
+      loadError: false,
+      saveError: false,
     };
   },
 
@@ -116,29 +121,47 @@ export default {
 
   methods: {
     async loadConfig() {
-      const url = generateUrl("/apps/imap_manager/admin/config");
-      const result = await axios.get(url);
-      this.dovecotEnabled = result.data.dovecot_enabled;
-      this.stalwartEnabled = result.data.stalwart_enabled;
-      this.stalwartUrl = result.data.stalwart_url;
-      this.stalwartAdminUser = result.data.stalwart_admin_user;
-      this.stalwartAdminPassword = result.data.stalwart_admin_password;
+      this.loadError = false;
+      try {
+        const url = generateUrl("/apps/imap_manager/admin/config");
+        const result = await axios.get(url);
+        this.dovecotEnabled = Boolean(result.data.dovecot_enabled);
+        this.stalwartEnabled = Boolean(result.data.stalwart_enabled);
+        this.stalwartUrl = result.data.stalwart_url ?? "";
+        this.stalwartAdminUser = result.data.stalwart_admin_user ?? "";
+        this.stalwartAdminPassword = result.data.stalwart_admin_password ?? "";
+      } catch (e) {
+        console.error("Failed to load IMAP Manager admin config", e);
+        this.loadError = true;
+      }
     },
 
     async save() {
-      const url = generateUrl("/apps/imap_manager/admin/config");
-      if (isPasswordConfirmationRequired()) {
-        await confirmPassword();
+      if (this.saving) {
+        return;
       }
-      await axios.post(url, {
-        dovecot_enabled: this.dovecotEnabled,
-        stalwart_enabled: this.stalwartEnabled,
-        stalwart_url: this.stalwartUrl,
-        stalwart_admin_user: this.stalwartAdminUser,
-        stalwart_admin_password: this.stalwartAdminPassword,
-      });
-      this.saved = true;
-      setTimeout(() => { this.saved = false; }, 3000);
+      this.saving = true;
+      this.saveError = false;
+      try {
+        const url = generateUrl("/apps/imap_manager/admin/config");
+        if (isPasswordConfirmationRequired()) {
+          await confirmPassword();
+        }
+        await axios.post(url, {
+          dovecot_enabled: this.dovecotEnabled,
+          stalwart_enabled: this.stalwartEnabled,
+          stalwart_url: this.stalwartUrl,
+          stalwart_admin_user: this.stalwartAdminUser,
+          stalwart_admin_password: this.stalwartAdminPassword,
+        });
+        this.saved = true;
+        setTimeout(() => { this.saved = false; }, 3000);
+      } catch (e) {
+        console.error("Failed to save IMAP Manager admin config", e);
+        this.saveError = true;
+      } finally {
+        this.saving = false;
+      }
     },
 
     async testConnection() {

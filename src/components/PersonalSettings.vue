@@ -65,8 +65,8 @@
             v-for="token in tokens"
             v-bind:key="token.id"
             bold
-            compact="true"
-            name="token.name"
+            :compact="true"
+            :name="token.name"
             oneline
           >
             <template #icon>
@@ -147,7 +147,7 @@
             v-for="pw in stalwartPasswords"
             v-bind:key="pw.name + pw.password"
             bold
-            compact="true"
+            :compact="true"
             :name="pw.name"
             oneline
           >
@@ -158,17 +158,27 @@
               {{ pw.name }}
             </template>
             <template #subname>
-              {{ pw.revealed ? pw.password : '••••••••' }}
+              <span v-if="pw.revealed" class="revealed-password">{{ pw.password }}</span>
+              <span v-else>••••••••••••</span>
             </template>
             <template #details>
               <NcButton
                 @click="pw.revealed = !pw.revealed"
-                aria-label="Reveal"
+                :aria-label="pw.revealed ? 'Hide password' : 'Reveal password'"
                 variant="tertiary"
               >
                 <template #icon>
                   <EyeOff v-if="pw.revealed" :size="16" />
                   <Eye v-else :size="16" />
+                </template>
+              </NcButton>
+              <NcButton
+                @click="copyStalwartPassword(pw.password)"
+                aria-label="Copy password"
+                variant="tertiary"
+              >
+                <template #icon>
+                  <IconClipboard :size="16" />
                 </template>
               </NcButton>
               <NcButton
@@ -203,7 +213,7 @@
             style="vertical-align: middle"
             :checked="syncEnabled"
           />
-          <label for="enbled">Enable sync</label>
+          <label for="enabled">Enable sync</label>
         </div>
         <div id="select_m365">
           <input
@@ -540,14 +550,20 @@ export default {
       }
     },
     async copyStalwart() {
+      await this.copyToClipboard(this.stalwartToken);
+      this.showStalwartDialog = false;
+    },
+    async copyStalwartPassword(password) {
+      await this.copyToClipboard(password);
+    },
+    async copyToClipboard(value) {
       try {
-        await navigator.clipboard.writeText(this.stalwartToken);
+        await navigator.clipboard.writeText(value);
         showSuccess(t("imap_manager", "Password copied to the clipboard"));
-        this.showStalwartDialog = false;
-      } catch (e) {
+      } catch {
         window.prompt(
           t("imap_manager", "Clipboard not available. Please copy the password manually."),
-          this.stalwartToken,
+          value,
         );
       }
     },
@@ -557,3 +573,10 @@ export default {
   },
 };
 </script>
+<style scoped>
+.revealed-password {
+  font-family: var(--font-face-monospace, monospace);
+  user-select: all;
+  word-break: break-all;
+}
+</style>
