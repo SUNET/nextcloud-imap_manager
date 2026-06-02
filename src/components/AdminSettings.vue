@@ -170,7 +170,7 @@ export default {
       try {
         const result = await axios.post(url);
         this.testResult = result.data.status === "success" ? "success" : "error";
-      } catch (e) {
+      } catch {
         this.testResult = "error";
       }
     },
@@ -180,23 +180,28 @@ export default {
 
 <style scoped>
 .wrapper {
-  margin-bottom: 16px;
+	margin-bottom: 16px;
 }
+
 .external-label {
-  margin-bottom: 8px;
+	margin-bottom: 8px;
 }
+
 .button-row {
-  margin-top: 8px;
-  margin-bottom: 8px;
+	margin-top: 8px;
+	margin-bottom: 8px;
 }
+
 .msg {
-  margin-top: 8px;
-  font-weight: bold;
+	margin-top: 8px;
+	font-weight: bold;
 }
+
 .msg.success {
-  color: var(--color-success);
+	color: var(--color-success);
 }
+
 .msg.error {
-  color: var(--color-error);
+	color: var(--color-error);
 }
 </style>

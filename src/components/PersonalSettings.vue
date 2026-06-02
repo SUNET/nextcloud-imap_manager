@@ -301,9 +301,6 @@ import EyeOff from "vue-material-design-icons/EyeOff.vue";
 import Key from "vue-material-design-icons/Key.vue";
 
 import {
-  NcActionButton,
-  NcActionRadio,
-  NcActions,
   NcButton,
   NcDialog,
   NcListItem,
@@ -335,9 +332,6 @@ export default {
     IconStar,
     IconStarOutline,
     Key,
-    NcActionButton,
-    NcActionRadio,
-    NcActions,
     NcButton,
     NcDialog,
     NcListItem,
@@ -575,8 +569,8 @@ export default {
 </script>
 <style scoped>
 .revealed-password {
-  font-family: var(--font-face-monospace, monospace);
-  user-select: all;
-  word-break: break-all;
+	font-family: var(--font-face-monospace, monospace);
+	user-select: all;
+	word-break: break-all;
 }
 </style>
