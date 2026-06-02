@@ -1,0 +1,59 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2025 Mikael Nordin <kano@sunet.se>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Pre-push hook: format the PHP files that are about to be pushed with
+# php-cs-fixer. If any file needed reformatting, the push is aborted so the
+# formatting can be committed (the commits being pushed cannot be edited here).
+#
+# Enable once per clone with:
+#   git config core.hooksPath .githooks
+set -eu
+
+ROOT=$(git rev-parse --show-toplevel)
+cd "$ROOT"
+
+FIXER="vendor/bin/php-cs-fixer"
+if [ ! -x "$FIXER" ]; then
+  echo "pre-push: $FIXER not found — run 'composer install' first." >&2
+  exit 1
+fi
+
+ZERO=0000000000000000000000000000000000000000
+changed=""
+
+# stdin lines: <local ref> <local sha> <remote ref> <remote sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$ZERO" ] && continue            # branch deletion, nothing to push
+  if [ "$remote_sha" = "$ZERO" ]; then
+    # New branch on the remote: diff against the default branch if known.
+    base=$(git merge-base "$local_sha" origin/main 2>/dev/null || true)
+    range=${base:+$base..}$local_sha
+  else
+    range="$remote_sha..$local_sha"
+  fi
+  files=$(git diff --name-only --diff-filter=ACMR "$range" -- lib 2>/dev/null | grep '\.php$' || true)
+  changed="$changed $files"
+done
+
+# Unique, still-existing files only.
+phpfiles=$(printf '%s\n' $changed | sort -u | while read -r f; do
+  [ -n "$f" ] && [ -f "$f" ] && printf '%s\n' "$f"
+done)
+
+[ -z "$phpfiles" ] && exit 0
+
+# Format just those files (the .php-cs-fixer.dist.php rules still apply).
+# shellcheck disable=SC2086
+"$FIXER" fix --using-cache=no --quiet $phpfiles || true
+
+# shellcheck disable=SC2086
+if ! git diff --quiet -- $phpfiles; then
+  echo "pre-push: php-cs-fixer reformatted files that were about to be pushed:" >&2
+  # shellcheck disable=SC2086
+  git --no-pager diff --name-only -- $phpfiles | sed 's/^/  /' >&2
+  echo "Review the changes, commit them, then push again." >&2
+  exit 1
+fi
+
+exit 0

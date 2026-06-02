@@ -15,6 +15,7 @@
         }
     ],
     "require": {
+        "php": ">=8.2",
         "psr/log": "^3.0"
     },
     "scripts": {
