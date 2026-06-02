@@ -7,11 +7,14 @@
 # formatting can be committed (the commits being pushed cannot be edited here).
 #
 # Enable once per clone with:
-#   git config core.hooksPath .githooks
-set -eu
+#   git config core.hooksPath .githooks      (or: make hooks)
+#
+# Note: deliberately does NOT use `set -e` — a non-zero status from a pipeline
+# or command substitution would otherwise abort the push with no message.
+set -u
 
-ROOT=$(git rev-parse --show-toplevel)
-cd "$ROOT"
+ROOT=$(git rev-parse --show-toplevel) || exit 0
+cd "$ROOT" || exit 0
 
 FIXER="vendor/bin/php-cs-fixer"
 if [ ! -x "$FIXER" ]; then
@@ -32,20 +35,24 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   else
     range="$remote_sha..$local_sha"
   fi
-  files=$(git diff --name-only --diff-filter=ACMR "$range" -- lib 2>/dev/null | grep '\.php$' || true)
-  changed="$changed $files"
+  more=$(git diff --name-only --diff-filter=ACMR "$range" -- lib 2>/dev/null | grep '\.php$')
+  if [ -n "$more" ]; then
+    changed="$changed
+$more"
+  fi
 done
 
-# Unique, still-existing files only.
-phpfiles=$(printf '%s\n' $changed | sort -u | while read -r f; do
-  [ -n "$f" ] && [ -f "$f" ] && printf '%s\n' "$f"
-done)
+# Unique, still-existing files only (paths under lib/ have no spaces).
+phpfiles=""
+for f in $(printf '%s\n' "$changed" | sort -u); do
+  [ -f "$f" ] && phpfiles="$phpfiles $f"
+done
 
 [ -z "$phpfiles" ] && exit 0
 
 # Format just those files (the .php-cs-fixer.dist.php rules still apply).
 # shellcheck disable=SC2086
-"$FIXER" fix --using-cache=no --quiet $phpfiles || true
+"$FIXER" fix --using-cache=no --quiet $phpfiles
 
 # shellcheck disable=SC2086
 if ! git diff --quiet -- $phpfiles; then
