@@ -17,9 +17,29 @@ use OCP\Migration\SimpleMigrationStep;
 
 class Version00500Date20260417000000 extends SimpleMigrationStep
 {
+    private bool $has_oversize = false;
+    private bool $has_duplicates = false;
+
     public function __construct(
         private IDBConnection $connection,
     ) {}
+
+    public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
+    {
+        /** @var ISchemaWrapper $schema */
+        $schema = $schemaClosure();
+        $table_name = 'imap_manager_users';
+
+        // Inspect the live data only when the table already exists, i.e. on an
+        // upgrade. On a fresh install Nextcloud runs migrations in schema-only
+        // mode and skips preSchemaChange entirely; the table is empty then, so
+        // the optimistic defaults (shrink + unique index) in changeSchema apply.
+        if (!$schema->hasTable($table_name)) {
+            return;
+        }
+
+        [$this->has_oversize, $this->has_duplicates] = $this->inspectExistingData($table_name);
+    }
 
     public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
@@ -31,7 +51,8 @@ class Version00500Date20260417000000 extends SimpleMigrationStep
             return null;
         }
 
-        [$has_oversize, $has_duplicates] = $this->inspectExistingData($table_name);
+        $has_oversize = $this->has_oversize;
+        $has_duplicates = $this->has_duplicates;
 
         $table = $schema->getTable($table_name);
         $name_column = $table->getColumn('name');
