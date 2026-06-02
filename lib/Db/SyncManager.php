@@ -37,63 +37,63 @@ use OCP\AppFramework\Db\Entity;
 
 class SyncManager extends Entity
 {
-  /**
-   * @var bool $calendarEnabled
-   */
-  protected $calendarEnabled;
-  /**
-   * @var bool $contactsEnabled
-   */
-  protected $contactsEnabled;
-  /**
-   * @var int $createdAt
-   */
-  protected $createdAt;
-  /**
-   * @var string $destination
-   */
-  protected $destination;
-  /**
-   * @var string $email
-   */
-  protected $email;
-  /**
-   * @var bool $emailEnabled
-   */
-  protected $emailEnabled;
-  /**
-   * @var bool $enabled
-   */
-  protected $enabled;
-  /**
-   * @var string $frequency
-   */
-  protected $frequency;
-  /**
-   * @var string $source
-   */
-  protected $source;
-  /**
-   * @var int $updatedAt
-   */
-  protected $updatedAt;
-  /**
-   * @var string $userId
-   */
-  protected $userId;
+    /**
+     * @var bool $calendarEnabled
+     */
+    protected $calendarEnabled;
+    /**
+     * @var bool $contactsEnabled
+     */
+    protected $contactsEnabled;
+    /**
+     * @var int $createdAt
+     */
+    protected $createdAt;
+    /**
+     * @var string $destination
+     */
+    protected $destination;
+    /**
+     * @var string $email
+     */
+    protected $email;
+    /**
+     * @var bool $emailEnabled
+     */
+    protected $emailEnabled;
+    /**
+     * @var bool $enabled
+     */
+    protected $enabled;
+    /**
+     * @var string $frequency
+     */
+    protected $frequency;
+    /**
+     * @var string $source
+     */
+    protected $source;
+    /**
+     * @var int $updatedAt
+     */
+    protected $updatedAt;
+    /**
+     * @var string $userId
+     */
+    protected $userId;
 
-  public function __construct()
-  {
-    $this->addType('calendar_enabled', 'boolean');
-    $this->addType('contacts_enabled', 'boolean');
-    $this->addType('created_at', 'integer');
-    $this->addType('destination', 'string');
-    $this->addType('email', 'string');
-    $this->addType('email_enabled', 'boolean');
-    $this->addType('enabled', 'boolean');
-    $this->addType('frequency', 'string');
-    $this->addType('source', 'string');
-    $this->addType('updated_at', 'integer');
-    $this->addType('user_id', 'string');
-  }
+    public function __construct()
+    {
+        $this->addType('calendar_enabled', 'boolean');
+        $this->addType('contacts_enabled', 'boolean');
+        $this->addType('created_at', 'integer');
+        $this->addType('destination', 'string');
+        $this->addType('email', 'string');
+        $this->addType('email_enabled', 'boolean');
+        $this->addType('enabled', 'boolean');
+        $this->addType('frequency', 'string');
+        $this->addType('source', 'string');
+        $this->addType('updated_at', 'integer');
+        $this->addType('user_id', 'string');
+    }
 }
