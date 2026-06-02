@@ -164,10 +164,16 @@ class ApiController extends Controller
             return new JSONResponse(['success' => false, 'error' => 'invalid_url'], Http::STATUS_BAD_REQUEST);
         }
         $this->appConfig->setValueString('imap_manager', 'stalwart_url', $stalwartUrl);
-        $this->appConfig->setValueString('imap_manager', 'stalwart_admin_user', strval($params['stalwart_admin_user'] ?? ''));
+        // Admin credentials are stored sensitive so they are encrypted at rest
+        // and masked by the provisioning API (config/apps/imap_manager).
+        $this->appConfig->setValueString('imap_manager', 'stalwart_admin_user', strval($params['stalwart_admin_user'] ?? ''), sensitive: true);
         if (isset($params['stalwart_admin_password']) && $params['stalwart_admin_password'] !== '********') {
             $this->appConfig->setValueString('imap_manager', 'stalwart_admin_password', strval($params['stalwart_admin_password']), sensitive: true);
         }
+        // Re-assert sensitivity even when the value is unchanged, so rows written
+        // by older releases (before the sensitive flag) get flagged and masked.
+        $this->appConfig->updateSensitive('imap_manager', 'stalwart_admin_user', true);
+        $this->appConfig->updateSensitive('imap_manager', 'stalwart_admin_password', true);
         $this->appConfig->setValueBool('imap_manager', 'dovecot_enabled', boolval($params['dovecot_enabled'] ?? true));
         $this->appConfig->setValueBool('imap_manager', 'stalwart_enabled', boolval($params['stalwart_enabled'] ?? false));
         return new JSONResponse(['status' => 'success'], Http::STATUS_OK);
