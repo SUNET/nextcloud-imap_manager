@@ -42,7 +42,8 @@
     "@nextcloud/webpack-vue-config": "^6.2.0",
     "eslint": "^9.22.0",
     "eslint-plugin-vue": "^10.0.0",
-    "globals": "^16.0.0"
+    "globals": "^16.0.0",
+    "stylelint": "^15.11.0"
   },
   "overrides": {
     "uuid": "$uuid"

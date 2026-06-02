@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\ImapManager\Migration;
 
 use Closure;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\ISchemaWrapper;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
@@ -17,8 +18,8 @@ use OCP\Migration\SimpleMigrationStep;
 
 class Version00500Date20260417000000 extends SimpleMigrationStep
 {
-    private bool $has_oversize = false;
-    private bool $has_duplicates = false;
+    private bool $hasOversize = false;
+    private bool $hasDuplicates = false;
 
     public function __construct(
         private IDBConnection $connection,
@@ -28,45 +29,43 @@ class Version00500Date20260417000000 extends SimpleMigrationStep
     {
         /** @var ISchemaWrapper $schema */
         $schema = $schemaClosure();
-        $table_name = 'imap_manager_users';
+        $tableName = 'imap_manager_users';
 
         // Inspect the live data only when the table already exists, i.e. on an
         // upgrade. On a fresh install Nextcloud runs migrations in schema-only
         // mode and skips preSchemaChange entirely; the table is empty then, so
         // the optimistic defaults (shrink + unique index) in changeSchema apply.
-        if (!$schema->hasTable($table_name)) {
+        if (!$schema->hasTable($tableName)) {
             return;
         }
 
-        [$this->has_oversize, $this->has_duplicates] = $this->inspectExistingData($table_name);
+        $this->hasOversize = $this->hasOversizedNames($tableName);
+        $this->hasDuplicates = $this->hasDuplicateUserNames($tableName);
     }
 
     public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
         /** @var ISchemaWrapper $schema */
         $schema = $schemaClosure();
-        $table_name = 'imap_manager_users';
+        $tableName = 'imap_manager_users';
 
-        if (!$schema->hasTable($table_name)) {
+        if (!$schema->hasTable($tableName)) {
             return null;
         }
 
-        $has_oversize = $this->has_oversize;
-        $has_duplicates = $this->has_duplicates;
+        $table = $schema->getTable($tableName);
+        $nameColumn = $table->getColumn('name');
 
-        $table = $schema->getTable($table_name);
-        $name_column = $table->getColumn('name');
-
-        if ($has_oversize) {
+        if ($this->hasOversize) {
             $output->warning(
                 'imap_manager: existing rows in imap_manager_users have name > 255 chars; '
                 . 'leaving name column at its current length. Clean up manually before a future migration shrinks it.'
             );
-        } elseif ($name_column->getLength() > 255) {
-            $name_column->setLength(255);
+        } elseif ($nameColumn->getLength() > 255) {
+            $nameColumn->setLength(255);
         }
 
-        if ($has_duplicates) {
+        if ($this->hasDuplicates) {
             $output->warning(
                 'imap_manager: duplicate (user_id, name) rows exist in imap_manager_users; '
                 . 'skipping unique index creation. Deduplicate manually, then re-run the migration.'
@@ -79,28 +78,47 @@ class Version00500Date20260417000000 extends SimpleMigrationStep
     }
 
     /**
-     * @return array{0: bool, 1: bool} [hasOversize, hasDuplicates]
+     * Whether any name exceeds 255 bytes, using a single LIMIT 1 existence
+     * query instead of scanning every row.
      */
-    private function inspectExistingData(string $table_name): array
+    private function hasOversizedNames(string $tableName): bool
     {
         $qb = $this->connection->getQueryBuilder();
-        $qb->select('user_id', 'name')->from($table_name);
-        $result = $qb->executeQuery();
+        $qb->select($qb->createFunction('1'))
+            ->from($tableName)
+            ->where($qb->expr()->gt(
+                $qb->func()->octetLength('name'),
+                $qb->createNamedParameter(255, IQueryBuilder::PARAM_INT)
+            ))
+            ->setMaxResults(1);
 
-        $has_oversize = false;
-        $has_duplicates = false;
-        $seen = [];
-        while ($row = $result->fetch()) {
-            if (strlen((string)$row['name']) > 255) {
-                $has_oversize = true;
-            }
-            $key = $row['user_id'] . "\0" . $row['name'];
-            if (isset($seen[$key])) {
-                $has_duplicates = true;
-            }
-            $seen[$key] = true;
-        }
+        $result = $qb->executeQuery();
+        $found = $result->fetchOne() !== false;
         $result->closeCursor();
-        return [$has_oversize, $has_duplicates];
+
+        return $found;
+    }
+
+    /**
+     * Whether any (user_id, name) pair occurs more than once, using a grouped
+     * LIMIT 1 query instead of building an in-memory set of every row.
+     */
+    private function hasDuplicateUserNames(string $tableName): bool
+    {
+        $qb = $this->connection->getQueryBuilder();
+        $qb->select('user_id', 'name')
+            ->from($tableName)
+            ->groupBy('user_id', 'name')
+            ->having($qb->expr()->gt(
+                $qb->func()->count('user_id'),
+                $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)
+            ))
+            ->setMaxResults(1);
+
+        $result = $qb->executeQuery();
+        $found = $result->fetch() !== false;
+        $result->closeCursor();
+
+        return $found;
     }
 }
